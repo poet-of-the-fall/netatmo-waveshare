@@ -1,0 +1,3 @@
+lnetatmo
+suntime
+Pillow
