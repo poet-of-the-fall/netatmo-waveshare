@@ -22,7 +22,7 @@ class ZStack(View):
     
     def render(self) -> Image:
         self.image = Image.new('RGBA', (self.width, self.height), (255, 255, 255, 0))
-
+        
         x = self.padding_horizontal
         y = self.padding_vertical
 

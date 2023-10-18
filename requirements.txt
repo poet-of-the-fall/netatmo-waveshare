@@ -1,3 +1,4 @@
 lnetatmo
 suntime
 Pillow
+pytz
