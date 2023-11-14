@@ -22,7 +22,7 @@ class HStack(View):
         self.gap = gap
         return self
     
-    def render(self) -> Image:
+    def prepareChild(self) -> Self:
         defined_width = 0
         undefined_weight = 0
         for view in self.view:
@@ -36,16 +36,23 @@ class HStack(View):
         if (undefined_weight > 0):
             width_per_view = int(remaining_width / undefined_weight)
 
+        for view in self.view:
+            if (view.width == 0):
+                view.setWidth(width = width_per_view * view.layoutWeight)
+            if (view.height == 0):
+                view.setHeight(height = (self.height - 2 * self.padding_vertical))
+
+        return self
+    
+    def render(self) -> Image:
+        self.prepareChild()
+        
         self.image = Image.new('RGBA', (self.width, self.height), (255, 255, 255, 0))
 
         x = self.padding_horizontal
         y = self.padding_vertical
 
         for view in self.view:
-            if (view.width == 0):
-                view.setWidth(width = width_per_view * view.layoutWeight)
-            if (view.height == 0):
-                view.setHeight(height = (self.height - 2 * self.padding_vertical))
             self.image.paste(view.render(), [x, y])
             x = x + view.width + self.gap
         

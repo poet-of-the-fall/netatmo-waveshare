@@ -16,12 +16,15 @@ class TextWidget(View):
     text: list[str]
     text_align: TextAlign
     text_size: int
+    max_text_size: int = None
     
-    def __init__(self, text: str, text_align: TextAlign = TextAlign.CENTER, text_size: int = None):
+    def __init__(self, text: str, text_align: TextAlign = TextAlign.CENTER, text_size: int = None, max_text_size: int = None):
         super().__init__()
         self.setText(text = text)
         self.setTextAlign(text_align = text_align)
         self.setTextSize(size = text_size)
+        if max_text_size:
+            self.setMaxTextSize(size = max_text_size)
     
     def setText(self, text: str) -> Self:
         self.text = [text]
@@ -38,6 +41,45 @@ class TextWidget(View):
     def setTextSize(self, size: int) -> Self:
         self.text_size = size
         return self
+    
+    def setMaxTextSize(self, size: int) -> Self:
+        self.max_text_size = size
+        return self
+    
+    def calculateTextSize(self) -> int:
+        fontdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Font.ttc')
+        image = Image.new('RGBA', (self.width, self.height), (255, 255, 255, 0))
+        draw = ImageDraw.Draw(image)
+
+        # find right text size horizontal
+        sizes = []
+        if self.max_text_size != None:
+            sizes.append(self.max_text_size)
+
+        for line in self.text:
+            size = 5
+            while True:
+                font = ImageFont.truetype(fontdir, size)
+                length = draw.textlength(line, font)
+                if length > (self.width - 2 * self.padding_horizontal):
+                    break
+                size += 1
+            sizes.append(size - 1)
+
+        # find right text size vertical
+        size = 5
+        while True:
+            font = ImageFont.truetype(fontdir, size)
+            height = 0
+            for line in self.text:
+                l, t, r, b = draw.textbbox((0,0), line, font)
+                height += b
+            if height > (self.height - 2 * self.padding_vertical):
+                break
+            size += 1
+        sizes.append(size - 1)
+
+        return min(sizes)
 
     def render(self) -> Image:
         fontdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Font.ttc')
@@ -45,32 +87,7 @@ class TextWidget(View):
         draw = ImageDraw.Draw(self.image)
 
         if self.text_size == None:
-            # find right text size horizontal
-            sizes = []
-            for line in self.text:
-                size = 5
-                while True:
-                    font = ImageFont.truetype(fontdir, size)
-                    length = draw.textlength(line, font)
-                    size += 1
-                    if length > (self.width - 2 * self.padding_horizontal):
-                        break
-                sizes.append(size - 1)
-
-            # find right text size vertical
-            size = 5
-            while True:
-                font = ImageFont.truetype(fontdir, size)
-                height = 0
-                for line in self.text:
-                    l, t, r, b = draw.textbbox((0,0), line, font)
-                    height += b
-                size += 1
-                if height > (self.height - 2 * self.padding_vertical):
-                    break
-            sizes.append(size - 1)
-
-            self.text_size = min(sizes)
+            self.text_size = self.calculateTextSize()
 
         # set font
         font = ImageFont.truetype(fontdir, self.text_size)

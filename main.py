@@ -45,6 +45,7 @@ image_height = config.getint('general', 'image_height')
 # Get highlight values
 highlight_humidity = config.getint('highlight', 'humidity')
 highlight_co2 = config.getint('highlight', 'co2')
+highlight_battery = config.getint('highlight', 'battery')
 
 if not export_image:
     from waveshare_epd import epd7in5_HD as epd
@@ -106,9 +107,11 @@ screen.setPadding(horizontal = 10, vertical = 10).setView(base_layout)
 # First row
 # Left part
 outdoor_module_widget = ModuleWidget().setWidth(350).setHeight(200)
-outdoor_module_widget.setHeader(str(outdoor_module[0]['dashboard_data']['Humidity']) + "%, " + str(main_module[0]['dashboard_data']['Pressure']) + "mbar")
-outdoor_module_widget.setBody(str(round(outdoor_module[0]['dashboard_data']['Temperature'], 1)) + u'\N{DEGREE SIGN}')
+outdoor_module_widget.setHeader(str(outdoor_module[0]['dashboard_data']['Humidity']) + "%, " + str(main_module[0]['dashboard_data']['Pressure']).replace(".", ",") + "mbar")
+outdoor_module_widget.setBody(str(round(outdoor_module[0]['dashboard_data']['Temperature'], 1)).replace(".", ",") + u'\N{DEGREE SIGN}')
 outdoor_module_widget.setFooter(outdoor_module[0]['module_name'] + " (Stand " + datetime.fromtimestamp(main_module[0]['last_status_store']).strftime('%H:%M') + ")")
+if outdoor_module[0]['battery_percent'] < highlight_battery:
+    outdoor_module_widget.setShowFrame(show_frame = True)
 
 # Right part
 date_display = TextWidget(current_date).setHeight(80).setTextSize(66).setTextAlign(TextAlign.LEFT)
@@ -125,11 +128,11 @@ temp_min_text = TextWidget("Min:").setTextSize(22).setTextAlign(TextAlign.LEFT)
 temp_max_text = TextWidget("Max:").setTextSize(22).setTextAlign(TextAlign.LEFT)
 temp_text = VStack().setWidth(60).addView(temp_min_text).addView(temp_max_text)
 
-temp_min_value = TextWidget(str(outdoor_module[0]['dashboard_data']['min_temp']) + u'\N{DEGREE SIGN}').setTextSize(22).setTextAlign(TextAlign.RIGHT)
-temp_max_value = TextWidget(str(outdoor_module[0]['dashboard_data']['max_temp']) + u'\N{DEGREE SIGN}').setTextSize(22).setTextAlign(TextAlign.RIGHT)
+temp_min_value = TextWidget(str(round(outdoor_module[0]['dashboard_data']['min_temp'], 1)).replace(".", ",") + u'\N{DEGREE SIGN}').setTextSize(22).setTextAlign(TextAlign.RIGHT)
+temp_max_value = TextWidget(str(round(outdoor_module[0]['dashboard_data']['max_temp'], 1)).replace(".", ",") + u'\N{DEGREE SIGN}').setTextSize(22).setTextAlign(TextAlign.RIGHT)
 temp_values = VStack().setWidth(60).addView(temp_min_value).addView(temp_max_value)
 
-day_info = HStack().setHeight(50).addView(sun_text).addView(sun_time).addView(Spacer()).addView(temp_text).addView(temp_values).addView(Spacer().setWidth(10))
+day_info = HStack().setHeight(55).addView(sun_text).addView(sun_time).addView(Spacer()).addView(temp_text).addView(temp_values).addView(Spacer().setWidth(10))
 
 date_corner = VStack().setWidth(450).setHeight(200).addView(Spacer()).addView(date_display).addView(Spacer().setHeight(10)).addView(day_info).addView(Spacer())
 top_row = HStack().addView(outdoor_module_widget).addView(Spacer()).addView(date_corner)
@@ -141,7 +144,7 @@ module_widgets_row = HStack().setHeight(100).setGap(10)
 # Main Module
 main_module_widget = ModuleWidget()
 main_module_widget.setHeader(str(main_module[0]['dashboard_data']['Humidity']) + "%, " + str(main_module[0]['dashboard_data']['CO2']) + "ppm")
-main_module_widget.setBody(str(round(main_module[0]['dashboard_data']['Temperature'], 1)))
+main_module_widget.setBody(str(round(main_module[0]['dashboard_data']['Temperature'], 1)).replace(".", ",") + u'\N{DEGREE SIGN}')
 main_module_widget.setFooter(main_module[0]['module_name'])
 if main_module[0]['dashboard_data']['Humidity'] >= highlight_humidity or main_module[0]['dashboard_data']['CO2'] >= highlight_co2:
     main_module_widget.invert()
@@ -151,8 +154,10 @@ module_widgets_row.addView(main_module_widget)
 for module in other_modules:
     other_module_widget = ModuleWidget()
     other_module_widget.setHeader(str(module['dashboard_data']['Humidity']) + "%, " + str(module['dashboard_data']['CO2']) + "ppm")
-    other_module_widget.setBody(str(round(module['dashboard_data']['Temperature'], 1)))
+    other_module_widget.setBody(str(round(module['dashboard_data']['Temperature'], 1)).replace(".", ",") + u'\N{DEGREE SIGN}')
     other_module_widget.setFooter(module['module_name'])
+    if module['battery_percent'] < highlight_battery:
+        other_module_widget.setShowFrame(show_frame = True)
     if module['dashboard_data']['Humidity'] >= highlight_humidity or module['dashboard_data']['CO2'] >= highlight_co2:
         other_module_widget.invert()
     module_widgets_row.addView(other_module_widget)
