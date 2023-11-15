@@ -1,7 +1,7 @@
 try:
-    from typing import Self
+    from typing import Self, List
 except ImportError:
-    from typing_extensions import Self
+    from typing_extensions import Self, List
 from .View import View
 from PIL import Image, ImageDraw, ImageFont
 import enum
@@ -18,7 +18,7 @@ class TextAlignVertical(enum.Enum):
     BOTTOM = 3
     
 class TextWidget(View):
-    text: list[str]
+    text: List[str]
     text_align_horizontal: TextAlignHorizontal
     text_align_vertical: TextAlignVertical
     text_size: int

@@ -2,3 +2,4 @@ lnetatmo
 suntime
 Pillow
 pytz
+typing-extensions
