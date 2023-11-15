@@ -7,21 +7,28 @@ from PIL import Image, ImageDraw, ImageFont
 import enum
 import os
 
-class TextAlign(enum.Enum):
+class TextAlignHorizontal(enum.Enum):
     LEFT = 1
     CENTER = 2
     RIGHT = 3
+
+class TextAlignVertical(enum.Enum):
+    TOP = 1
+    CENTER = 2
+    BOTTOM = 3
     
 class TextWidget(View):
     text: list[str]
-    text_align: TextAlign
+    text_align_horizontal: TextAlignHorizontal
+    text_align_vertical: TextAlignVertical
     text_size: int
     max_text_size: int = None
     
-    def __init__(self, text: str, text_align: TextAlign = TextAlign.CENTER, text_size: int = None, max_text_size: int = None):
+    def __init__(self, text: str, text_align_horizontal: TextAlignHorizontal = TextAlignHorizontal.CENTER, text_align_vertical: TextAlignVertical = TextAlignVertical.CENTER, text_size: int = None, max_text_size: int = None):
         super().__init__()
         self.setText(text = text)
-        self.setTextAlign(text_align = text_align)
+        self.setTextAlignHorizontal(text_align = text_align_horizontal)
+        self.setTextAlignVertical(text_align = text_align_vertical)
         self.setTextSize(size = text_size)
         if max_text_size:
             self.setMaxTextSize(size = max_text_size)
@@ -34,8 +41,12 @@ class TextWidget(View):
         self.text.append(text)
         return self
     
-    def setTextAlign(self, text_align: TextAlign) -> Self:
-        self.text_align = text_align
+    def setTextAlignHorizontal(self, text_align: TextAlignHorizontal) -> Self:
+        self.text_align_horizontal = text_align
+        return self
+    
+    def setTextAlignVertical(self, text_align: TextAlignVertical) -> Self:
+        self.text_align_vertical = text_align
         return self
 
     def setTextSize(self, size: int) -> Self:
@@ -97,17 +108,23 @@ class TextWidget(View):
         for line in self.text:
             l, t, r, b = draw.textbbox((0,0), line, font)
             height += b
-        top = self.padding_vertical + ((self.height - 2 * self.padding_vertical - height) / 2)
+        top = 0
+        if self.text_align_vertical == TextAlignVertical.TOP:
+            top = self.padding_vertical
+        elif self.text_align_vertical == TextAlignVertical.CENTER:
+            top = self.padding_vertical + ((self.height - 2 * self.padding_vertical - height) / 2)
+        elif self.text_align_vertical == TextAlignVertical.BOTTOM:
+            top = self.padding_vertical + (self.height - 2 * self.padding_vertical - height)
 
         # get horizontal position and draw
         for line in self.text:
             l, t, r, b = draw.textbbox((0, 0), line, font)
             left = 0
-            if self.text_align == TextAlign.LEFT:
+            if self.text_align_horizontal == TextAlignHorizontal.LEFT:
                 left = self.padding_horizontal
-            elif self.text_align == TextAlign.CENTER:
+            elif self.text_align_horizontal == TextAlignHorizontal.CENTER:
                 left = self.padding_horizontal + ((self.width - 2 * self.padding_horizontal - r) / 2)
-            elif self.text_align == TextAlign.RIGHT:
+            elif self.text_align_horizontal == TextAlignHorizontal.RIGHT:
                 left = self.padding_horizontal + (self.width - 2 * self.padding_horizontal - r)
             draw.text((left, top), line, font = font, fill = (0, 0, 0, 255))
             top += b

@@ -4,13 +4,14 @@ from suntime import Sun
 import lnetatmo
 import configparser
 from datetime import datetime, timezone
+import time
 import pytz
 import os
 import sys
 import logging
 import locale
-from PIL import Image,ImageDraw,ImageFont
-from widgets import Screen, HStack, VStack, ZStack, Spacer, TextWidget, TextAlign, ModuleWidget
+from widgets import Screen, HStack, VStack, ZStack, Spacer, TextWidget, TextAlignHorizontal, ModuleWidget
+import signal
 
 libdir = "./e-Paper/RaspberryPi_JetsonNano/python/lib"
 if os.path.exists(libdir):
@@ -50,129 +51,206 @@ highlight_battery = config.getint('highlight', 'battery')
 if not export_image:
     from waveshare_epd import epd7in5_HD as epd
     from waveshare_epd import epdconfig
+    
+# Handle script exit
+def exit_handler(first=None, second=None):
+    logging.info('Script stopped')
+    logging.debug(first, second)
+    if not export_image:
+        epd.EPD().Clear()
+        epdconfig.module_exit()
+    exit()
+
+signal.signal(signal.SIGINT, exit_handler)
+signal.signal(signal.SIGTERM, exit_handler)
+signal.signal(signal.SIGABRT, exit_handler)
 
 welcomeText = TextWidget("Netatmo").addTextLine("Display").setPadding(vertical = 100, horizontal = 100)
 welcomeScreen = Screen(width = image_width, height = image_height, save_image = export_image).setView(welcomeText)
-lastImage = welcomeScreen.render()
+last_image = welcomeScreen.render()
+lastUpdate = 0
 
+if not export_image:
+    try:
+        logging.info("Power up display")
+        epd.EPD().init()
+        epd.EPD().Clear()
+        epd.EPD().display(epd.EPD().getbuffer(last_image))
 
-# Initiate Netatmo client
-try:
-    authorization = lnetatmo.ClientAuth()
-    weatherData = lnetatmo.WeatherStationData(authorization)
-    #print(weatherData.rawData)
-    # print(weatherData.default_station)
-    # print(weatherData.stations)
-    # print(weatherData.modules)
-except:
-    print("outch")
+    except IOError as e:
+        logging.info(e)
 
-coords = weatherData.stations[weatherData.default_station]['place']['location']
-tzone = pytz.timezone(weatherData.stations[weatherData.default_station]['place']['timezone'])
-sun = Sun(coords[1], coords[0])
-rise_time = sun.get_sunrise_time().astimezone(tzone).strftime("%H:%M")
-set_time = sun.get_sunset_time().astimezone(tzone).strftime("%H:%M")
-logging.info('Sunrise is %s and Sunset at %s', rise_time, set_time)
+    except KeyboardInterrupt:
+        exit_handler()
 
-current_date = datetime.now().strftime('%d. %B')#.decode('utf-8')
+while True:
+    # Initiate Netatmo client
+    try:
+        authorization = lnetatmo.ClientAuth()
+        weatherData = lnetatmo.WeatherStationData(authorization)
+        # print(weatherData.rawData)
+        # print(weatherData.default_station)
+        # print(weatherData.stations)
+        # print(weatherData.modules)
+    except:
+        logging.warning('Fetching data failed! Waiting 20 Minutes.')
+        time.sleep(1200)
+        continue
 
-main_module = [weatherData.stations[weatherData.default_station]]
-outdoor_module = []
-rain_module = []
-wind_module = []
-other_modules = []
+    coords = weatherData.stations[weatherData.default_station]['place']['location']
+    tzone = pytz.timezone(weatherData.stations[weatherData.default_station]['place']['timezone'])
+    sun = Sun(coords[1], coords[0])
+    rise_time = sun.get_sunrise_time().astimezone(tzone).strftime("%H:%M")
+    set_time = sun.get_sunset_time().astimezone(tzone).strftime("%H:%M")
+    logging.info('Sunrise is %s and Sunset at %s', rise_time, set_time)
 
-for module in weatherData.modules.keys():
-    m_data_type = weatherData.modules[module]['data_type']
-    if ('Temperature' in m_data_type and 'CO2' not in m_data_type):
-        outdoor_module.append(weatherData.modules[module])
-    elif ('CO2' in m_data_type):
-        other_modules.append(weatherData.modules[module])
-    elif ('Wind' in m_data_type):
-        wind_module.append(weatherData.modules[module])
-    elif ('Rain' in m_data_type):
-        rain_module.append(weatherData.modules[module])
+    current_date = datetime.now().strftime('%d. %B')#.decode('utf-8')
 
-print("main", main_module)
-print("outdoor", outdoor_module)
-print("rain", rain_module)
-print("wind", wind_module)
-for module in other_modules:
-    print("other", module)
+    main_module = [weatherData.stations[weatherData.default_station]]
+    outdoor_module = []
+    rain_module = []
+    wind_module = []
+    other_modules = []
 
-screen = Screen(width = image_width, height = image_height, save_image = export_image)
-base_layout = VStack()
-screen.setPadding(horizontal = 10, vertical = 10).setView(base_layout)
+    updateTimeUTC = main_module[0]["last_status_store"]
+    updateTime = datetime.fromtimestamp(updateTimeUTC) 
+    logging.info('Last update: %s', updateTime.strftime('%A, %d.%m.%Y %H:%M:%S'))
+    if (updateTimeUTC == lastUpdate):
+        logging.info("No new data in between, won't update display and sleep 60 sec")
+        time.sleep(60)
+        continue
+    else: 
+        lastUpdate = updateTimeUTC
 
-# First row
-# Left part
-outdoor_module_widget = ModuleWidget().setWidth(350).setHeight(200)
-outdoor_module_widget.setHeader(str(outdoor_module[0]['dashboard_data']['Humidity']) + "%, " + str(main_module[0]['dashboard_data']['Pressure']).replace(".", ",") + "mbar")
-outdoor_module_widget.setBody(str(round(outdoor_module[0]['dashboard_data']['Temperature'], 1)).replace(".", ",") + u'\N{DEGREE SIGN}')
-outdoor_module_widget.setFooter(outdoor_module[0]['module_name'] + " (Stand " + datetime.fromtimestamp(main_module[0]['last_status_store']).strftime('%H:%M') + ")")
-if outdoor_module[0]['battery_percent'] < highlight_battery:
-    outdoor_module_widget.setShowFrame(show_frame = True)
+    for module in weatherData.modules.keys():
+        m_data_type = weatherData.modules[module]['data_type']
+        if ('Temperature' in m_data_type and 'CO2' not in m_data_type):
+            outdoor_module.append(weatherData.modules[module])
+        elif ('CO2' in m_data_type):
+            other_modules.append(weatherData.modules[module])
+        elif ('Wind' in m_data_type):
+            wind_module.append(weatherData.modules[module])
+        elif ('Rain' in m_data_type):
+            rain_module.append(weatherData.modules[module])
 
-# Right part
-date_display = TextWidget(current_date).setHeight(80).setTextSize(66).setTextAlign(TextAlign.LEFT)
+    screen = Screen(width = image_width, height = image_height, save_image = export_image)
+    base_layout = VStack()
+    screen.setPadding(horizontal = 10, vertical = 10).setView(base_layout)
 
-sunrise_text = TextWidget("Sonnenaufgang:").setTextSize(22).setTextAlign(TextAlign.LEFT)
-sunset_text = TextWidget("Sonnenuntergang:").setTextSize(22).setTextAlign(TextAlign.LEFT)
-sun_text = VStack().setWidth(200).addView(sunrise_text).addView(sunset_text)
+    # First row
+    # Left part
+    outdoor_module_widget = ModuleWidget().setWidth(350)
+    outdoor_module_widget.setHeader(str(outdoor_module[0]['dashboard_data']['Humidity']) + "%, " + str(main_module[0]['dashboard_data']['Pressure']).replace(".", ",") + "mbar")
+    outdoor_module_widget.setBody(str(round(outdoor_module[0]['dashboard_data']['Temperature'], 1)).replace(".", ",") + u'\N{DEGREE SIGN}')
+    outdoor_module_widget.setFooter(outdoor_module[0]['module_name'] + " (Stand " + datetime.fromtimestamp(main_module[0]['last_status_store']).strftime('%H:%M') + ")")
+    if outdoor_module[0]['battery_percent'] < highlight_battery:
+        outdoor_module_widget.setShowFrame(show_frame = True)
 
-sunrise_time = TextWidget(rise_time).setTextSize(22).setTextAlign(TextAlign.RIGHT)
-sunset_time = TextWidget(set_time).setTextSize(22).setTextAlign(TextAlign.RIGHT)
-sun_time = VStack().setWidth(60).addView(sunrise_time).addView(sunset_time)
+    # Right part
+    date_display = TextWidget(current_date).setHeight(80).setTextSize(66).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
 
-temp_min_text = TextWidget("Min:").setTextSize(22).setTextAlign(TextAlign.LEFT)
-temp_max_text = TextWidget("Max:").setTextSize(22).setTextAlign(TextAlign.LEFT)
-temp_text = VStack().setWidth(60).addView(temp_min_text).addView(temp_max_text)
+    sunrise_text = TextWidget("Sonnenaufgang:").setTextSize(22).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
+    sunset_text = TextWidget("Sonnenuntergang:").setTextSize(22).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
+    sun_text = VStack().setWidth(200).addView(sunrise_text).addView(sunset_text)
 
-temp_min_value = TextWidget(str(round(outdoor_module[0]['dashboard_data']['min_temp'], 1)).replace(".", ",") + u'\N{DEGREE SIGN}').setTextSize(22).setTextAlign(TextAlign.RIGHT)
-temp_max_value = TextWidget(str(round(outdoor_module[0]['dashboard_data']['max_temp'], 1)).replace(".", ",") + u'\N{DEGREE SIGN}').setTextSize(22).setTextAlign(TextAlign.RIGHT)
-temp_values = VStack().setWidth(60).addView(temp_min_value).addView(temp_max_value)
+    sunrise_time = TextWidget(rise_time).setTextSize(22).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
+    sunset_time = TextWidget(set_time).setTextSize(22).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
+    sun_time = VStack().setWidth(60).addView(sunrise_time).addView(sunset_time)
 
-day_info = HStack().setHeight(55).addView(sun_text).addView(sun_time).addView(Spacer()).addView(temp_text).addView(temp_values).addView(Spacer().setWidth(10))
+    temp_min_text = TextWidget("Min:").setTextSize(22).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
+    temp_max_text = TextWidget("Max:").setTextSize(22).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
+    temp_text = VStack().setWidth(60).addView(temp_min_text).addView(temp_max_text)
 
-date_corner = VStack().setWidth(450).setHeight(200).addView(Spacer()).addView(date_display).addView(Spacer().setHeight(10)).addView(day_info).addView(Spacer())
-top_row = HStack().addView(outdoor_module_widget).addView(Spacer()).addView(date_corner)
-base_layout.addView(top_row)
+    temp_min_value = TextWidget(str(round(outdoor_module[0]['dashboard_data']['min_temp'], 1)).replace(".", ",") + u'\N{DEGREE SIGN}').setTextSize(22).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
+    temp_max_value = TextWidget(str(round(outdoor_module[0]['dashboard_data']['max_temp'], 1)).replace(".", ",") + u'\N{DEGREE SIGN}').setTextSize(22).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
+    temp_values = VStack().setWidth(60).addView(temp_min_value).addView(temp_max_value)
 
-# Second row
-module_widgets_row = HStack().setHeight(100).setGap(10)
+    day_info = HStack().setHeight(55).addView(sun_text).addView(sun_time).addView(Spacer()).addView(temp_text).addView(temp_values).addView(Spacer().setWidth(10))
 
-# Main Module
-main_module_widget = ModuleWidget()
-main_module_widget.setHeader(str(main_module[0]['dashboard_data']['Humidity']) + "%, " + str(main_module[0]['dashboard_data']['CO2']) + "ppm")
-main_module_widget.setBody(str(round(main_module[0]['dashboard_data']['Temperature'], 1)).replace(".", ",") + u'\N{DEGREE SIGN}')
-main_module_widget.setFooter(main_module[0]['module_name'])
-if main_module[0]['dashboard_data']['Humidity'] >= highlight_humidity or main_module[0]['dashboard_data']['CO2'] >= highlight_co2:
-    main_module_widget.invert()
-module_widgets_row.addView(main_module_widget)
+    date_corner = VStack().setWidth(450).addView(Spacer()).addView(date_display).addView(Spacer().setHeight(10)).addView(day_info).addView(Spacer())
+    top_row = HStack().addView(outdoor_module_widget).addView(Spacer()).addView(date_corner).setHeight(200)
+    base_layout.addView(top_row)
 
-# Additional Modules
-for module in other_modules:
-    other_module_widget = ModuleWidget()
-    other_module_widget.setHeader(str(module['dashboard_data']['Humidity']) + "%, " + str(module['dashboard_data']['CO2']) + "ppm")
-    other_module_widget.setBody(str(round(module['dashboard_data']['Temperature'], 1)).replace(".", ",") + u'\N{DEGREE SIGN}')
-    other_module_widget.setFooter(module['module_name'])
-    if module['battery_percent'] < highlight_battery:
-        other_module_widget.setShowFrame(show_frame = True)
-    if module['dashboard_data']['Humidity'] >= highlight_humidity or module['dashboard_data']['CO2'] >= highlight_co2:
-        other_module_widget.invert()
-    module_widgets_row.addView(other_module_widget)
+    # Second row
+    module_widgets_row = HStack().setHeight(120).setGap(10).setPadding(horizontal = 0, vertical = 10)
 
-# Rain Module
-if len(rain_module) > 0:
-    rain_module_widget = ModuleWidget()
-    rain_module_widget.setHeader("Regen vor ")
-    rain_module_widget.setBody("TODO mm")
-    rain_module_widget.setFooter(rain_module[0]['module_name'])
-    module_widgets_row.addView(rain_module_widget)
+    # Main Module
+    main_module_widget = ModuleWidget()
+    main_module_widget.setHeader(str(main_module[0]['dashboard_data']['Humidity']) + "%, " + str(main_module[0]['dashboard_data']['CO2']) + "ppm")
+    main_module_widget.setBody(str(round(main_module[0]['dashboard_data']['Temperature'], 1)).replace(".", ",") + u'\N{DEGREE SIGN}')
+    main_module_widget.setFooter(main_module[0]['module_name'])
+    if main_module[0]['dashboard_data']['Humidity'] >= highlight_humidity or main_module[0]['dashboard_data']['CO2'] >= highlight_co2:
+        main_module_widget.invert()
+    module_widgets_row.addView(main_module_widget)
 
-base_layout.addView(module_widgets_row)
+    # Additional Modules
+    for module in other_modules:
+        other_module_widget = ModuleWidget()
+        other_module_widget.setHeader(str(module['dashboard_data']['Humidity']) + "%, " + str(module['dashboard_data']['CO2']) + "ppm")
+        other_module_widget.setBody(str(round(module['dashboard_data']['Temperature'], 1)).replace(".", ",") + u'\N{DEGREE SIGN}')
+        other_module_widget.setFooter(module['module_name'])
+        if module['battery_percent'] < highlight_battery:
+            other_module_widget.setShowFrame(show_frame = True)
+        if module['dashboard_data']['Humidity'] >= highlight_humidity or module['dashboard_data']['CO2'] >= highlight_co2:
+            other_module_widget.invert()
+        module_widgets_row.addView(other_module_widget)
 
-# Third row
+    # Rain Module
+    if len(rain_module) > 0:
+        # Get hourly rain of last month
+        now = datetime.now(timezone.utc).timestamp()
+        last_month  = now - 36 * 24 * 3600
+        try:
+            measure = weatherData.getMeasure(main_module[0]["_id"], '1hour', 'sum_rain', rain_module[0]["_id"], date_begin = last_month, date_end = now, optimize = True)
+            hours = 0
+            rain_hour_values = []
 
-base_layout.addView(Spacer())
-screen.render()
+            for chunk in measure['body']:
+                rain_hour_values.extend(chunk['value'])
+            rain_hour_values = [v[0] for v in rain_hour_values]
+            logging.info('Rain values: %s', rain_hour_values)
+            for x in reversed(rain_hour_values):
+                if x > 0:
+                    break
+                hours = hours + 1
+            unit = 'h'
+            if hours > 24:
+                hours = int(hours / 24)
+                unit = 'd'
+        except:
+            logging.warning('Fetching rain data failed!')
+            hours = "-"
+            unit = ""
+
+        rain_module_widget = ModuleWidget()
+        rain_module_widget.setHeader("Regen vor " + str(hours) + unit)
+        rain_module_widget.setBody(str(round(rain_module[0]['dashboard_data']['sum_rain_24'], 1)).replace(".", ","))
+        rain_module_widget.setUnit("mm").setUnitRatio(0.2)
+        rain_module_widget.setFooter(rain_module[0]['module_name'])
+        module_widgets_row.addView(rain_module_widget)
+
+    base_layout.addView(module_widgets_row)
+
+    # Third row
+
+    base_layout.addView(Spacer())
+    last_image = screen.render()
+
+    # Draw image
+    if not export_image:
+        try:
+            epd.EPD().display(epd.EPD().getbuffer(last_image))
+        
+        except IOError as e:
+            logging.info(e)
+            continue
+        
+        except KeyboardInterrupt:    
+            exit_handler()
+
+    # Wait time for next update
+    delta = (datetime.now() - updateTime).total_seconds()
+    logging.info('Update time ago: %s, need to wait: %s', delta, 600 - delta) 
+    time.sleep((600 - delta) if (delta < 600) else 10)
+
+exit()
