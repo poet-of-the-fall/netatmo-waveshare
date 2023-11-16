@@ -1,12 +1,12 @@
 try:
-    from typing import Self, List
+    from typing import Self
 except ImportError:
-    from typing_extensions import Self, List
+    from typing_extensions import Self
 from PIL import Image
 from .View import View
 
 class ZStack(View):
-    view: List[View]
+    view: list[View]
 
     def __init__(self):
         super().__init__()
