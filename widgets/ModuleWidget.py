@@ -8,6 +8,7 @@ from .HStack import HStack
 from .TextWidget import TextWidget, TextAlignVertical
 from PIL import Image, ImageDraw, ImageFont
 import os
+import math
     
 class ModuleWidget(View):
     header: str
@@ -62,17 +63,22 @@ class ModuleWidget(View):
     def render(self) -> Image:
         header = TextWidget(self.header).setHeight(round((self.height - 2 * self.padding_vertical) * self.ratio))
         footer = TextWidget(self.footer).setHeight(round((self.height - 2 * self.padding_vertical) * self.ratio))
-        body_value = TextWidget(self.body)
+        body_value = TextWidget(self.body).setTextAlignVertical(TextAlignVertical.BOTTOM)
         body = HStack().addView(body_value).setWidth(self.width - 2 * self.padding_horizontal).setHeight(round((self.height - 2 * self.padding_vertical) * ( 1 - 2 * self.ratio)))
 
-        if self.unit:
-            fontdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Font.ttc')
-            image = Image.new('RGBA', (self.width, self.height), (255, 255, 255, 0))
-            draw = ImageDraw.Draw(image)
-            width = 0
+        fontdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Font.ttc')
+        image = Image.new('RGBA', (self.width, self.height), (255, 255, 255, 0))
+        draw = ImageDraw.Draw(image)
+        body.prepareChild()
+        body_value.setTextSize(body_value.calculateTextSize(different_height = math.floor(body_value.height * 1.175)))
+        body_value.setWidth(0)
+        body_value.setHeight(0)
 
+        if self.unit:
+            width = 0
             body.prepareChild()
-            text_size = body_value.calculateTextSize()
+            text_size = body_value.calculateTextSize(different_width = math.floor((self.width - 2 * self.padding_horizontal) * (1 - self.unit_ratio)), different_height = math.floor(body_value.height * 1.175))
+            body_value.setTextSize(text_size)
             font = ImageFont.truetype(fontdir, text_size)
             l, t, r, b = draw.textbbox((0,0), self.body, font)
             unit_width = round((self.width - 2 * self.padding_horizontal) * self.unit_ratio)
@@ -80,11 +86,10 @@ class ModuleWidget(View):
             body_unit = TextWidget(self.unit).setPadding(vertical = self.height * (1 - self.ratio) * 0.1, horizontal = 0).setTextAlignVertical(TextAlignVertical.BOTTOM).setWidth(unit_width)
             
             body.addView(body_unit)
-            body_value.setWidth(0)
-            body_value.setHeight(0)
-
             body.setPadding(vertical = 0, horizontal = round((self.width - 2 * self.padding_horizontal - width) / 2))
-
+        
+        body_value.setWidth(0)
+        body_value.setHeight(0)
         body.prepareChild()
         module = VStack().setPadding(vertical = self.padding_vertical, horizontal = self.padding_horizontal)
         module.setHeight(self.height).setWidth(self.width).addView(header).addView(body).addView(footer).prepareChild()

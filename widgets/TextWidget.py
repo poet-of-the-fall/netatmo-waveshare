@@ -57,9 +57,15 @@ class TextWidget(View):
         self.max_text_size = size
         return self
     
-    def calculateTextSize(self) -> int:
+    def calculateTextSize(self, different_width: int = None, different_height: int = None) -> int:
+        box_width = self.width
+        box_height = self.height
+        if different_width:
+            box_width = different_width
+        if different_height:
+            box_height = different_height
         fontdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Font.ttc')
-        image = Image.new('RGBA', (self.width, self.height), (255, 255, 255, 0))
+        image = Image.new('RGBA', (box_width, box_height), (255, 255, 255, 0))
         draw = ImageDraw.Draw(image)
 
         # find right text size horizontal
@@ -72,7 +78,7 @@ class TextWidget(View):
             while True:
                 font = ImageFont.truetype(fontdir, size)
                 length = draw.textlength(line, font)
-                if length > (self.width - 2 * self.padding_horizontal):
+                if length > (box_width - 2 * self.padding_horizontal):
                     break
                 size += 1
             sizes.append(size - 1)
@@ -85,7 +91,7 @@ class TextWidget(View):
             for line in self.text:
                 l, t, r, b = draw.textbbox((0,0), line, font)
                 height += b
-            if height > (self.height - 2 * self.padding_vertical):
+            if height > (box_height - 2 * self.padding_vertical):
                 break
             size += 1
         sizes.append(size - 1)
