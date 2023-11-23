@@ -212,24 +212,25 @@ while True:
         try:
             measure = weatherData.getMeasure(main_module[0]["_id"], '1hour', 'sum_rain', rain_module[0]["_id"], date_begin = last_month, date_end = now, optimize = True)
             hours = 0
-            rain_hour_values = []
-
-            for chunk in measure['body']:
-                rain_hour_values.extend(chunk['value'])
-            rain_hour_values = [v[0] for v in rain_hour_values]
-            logging.info('Rain values: %s', rain_hour_values)
-            for x in reversed(rain_hour_values):
-                if x > 0:
-                    break
-                hours = hours + 1
-            unit = 'h'
-            if hours > 24:
-                hours = int(hours / 24)
-                unit = 'd'
         except:
             logging.warning('Fetching rain data failed!')
             hours = "-"
             unit = ""
+
+        rain_hour_values = []
+
+        for chunk in measure['body']:
+            rain_hour_values.extend(chunk['value'])
+        rain_hour_values = [v[0] for v in rain_hour_values]
+        logging.info('Rain values: %s', rain_hour_values)
+        for x in reversed(rain_hour_values):
+            if x > 0:
+                break
+            hours = hours + 1
+        unit = 'h'
+        if hours > 24:
+            hours = int(hours / 24)
+            unit = 'd'
 
         rain_module_widget = ModuleWidget()
         rain_module_widget.setHeader("Regen vor " + str(hours) + unit)
