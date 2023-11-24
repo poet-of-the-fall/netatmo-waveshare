@@ -219,18 +219,19 @@ while True:
 
         rain_hour_values = []
 
-        for chunk in measure['body']:
-            rain_hour_values.extend(chunk['value'])
-        rain_hour_values = [v[0] for v in rain_hour_values]
-        logging.info('Rain values: %s', rain_hour_values)
-        for x in reversed(rain_hour_values):
-            if x > 0:
-                break
-            hours = hours + 1
-        unit = 'h'
-        if hours > 24:
-            hours = int(hours / 24)
-            unit = 'd'
+        if measure['body']:
+            for chunk in measure['body']:
+                rain_hour_values.extend(chunk['value'])
+            rain_hour_values = [v[0] for v in rain_hour_values]
+            logging.info('Rain values: %s', rain_hour_values)
+            for x in reversed(rain_hour_values):
+                if x > 0:
+                    break
+                hours = hours + 1
+            unit = 'h'
+            if hours > 24:
+                hours = int(hours / 24)
+                unit = 'd'
 
         rain_module_widget = ModuleWidget()
         rain_module_widget.setHeader("Regen vor " + str(hours) + unit)
