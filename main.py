@@ -233,7 +233,7 @@ while True:
                 hours = int(hours / 24)
                 unit = 'd'
 
-        sum_rain = str(round(rain_module[0]['dashboard_data']['sum_rain_24'] if 'sum_rain_24' in rain_module[0]['dashboard_data'] else 0, 1)).replace('.', ',')
+        sum_rain = rain_module[0]['dashboard_data']['sum_rain_24'] if 'sum_rain_24' in rain_module[0]['dashboard_data'] else 0
         rain_module_widget = ModuleWidget()
         rain_module_widget.setHeader("Regen vor " + str(hours) + unit)
         rain_module_widget.setBody(format_decimal(sum_rain))
