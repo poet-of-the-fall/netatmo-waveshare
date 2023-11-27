@@ -219,7 +219,7 @@ while True:
 
         rain_hour_values = []
 
-        if measure['body']:
+        if measure and measure['body']:
             for chunk in measure['body']:
                 rain_hour_values.extend(chunk['value'])
             rain_hour_values = [v[0] for v in rain_hour_values]
