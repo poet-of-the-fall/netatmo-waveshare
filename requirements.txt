@@ -1,4 +1,4 @@
-lnetatmo
+lnetatmo>=4.0.0
 suntime
 Pillow
 pytz

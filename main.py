@@ -86,10 +86,11 @@ if not export_image:
 def format_decimal(value) -> str:
     return str(round(float(value), 1)).replace(".", ",")
 
+authorization = lnetatmo.ClientAuth()
+
 while True:
     # Initiate Netatmo client
     try:
-        authorization = lnetatmo.ClientAuth()
         weatherData = lnetatmo.WeatherStationData(authorization)
         # print(weatherData.rawData)
         # print(weatherData.default_station)
