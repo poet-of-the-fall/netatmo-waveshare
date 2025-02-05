@@ -6,10 +6,14 @@ from .View import View
 from .VStack import VStack
 from .HStack import HStack
 from .TextWidget import TextWidget, TextAlignVertical
+from .ConfigHelper import ConfigHelper
 from PIL import Image, ImageDraw, ImageFont
 import os
 import math
-    
+from datetime import datetime, timezone
+from lnetatmo import WeatherStationData
+import logging
+
 class ModuleWidget(View):
     header: str
     body: str
@@ -59,10 +63,8 @@ class ModuleWidget(View):
             ratio = 0.2
         self.unit_ratio = ratio
         return self
-
-    def render(self) -> Image:
-        header = TextWidget(self.header).setHeight(round((self.height - 2 * self.padding_vertical) * self.ratio))
-        footer = TextWidget(self.footer).setHeight(round((self.height - 2 * self.padding_vertical) * self.ratio))
+    
+    def prepareBody(self) -> View:
         body_value = TextWidget(self.body).setTextAlignVertical(TextAlignVertical.BOTTOM)
         body = HStack().addView(body_value).setWidth(self.width - 2 * self.padding_horizontal).setHeight(round((self.height - 2 * self.padding_vertical) * ( 1 - 2 * self.ratio)))
 
@@ -91,6 +93,12 @@ class ModuleWidget(View):
         body_value.setWidth(0)
         body_value.setHeight(0)
         body.prepareChild()
+        return body
+
+    def render(self) -> Image:
+        header = TextWidget(self.header).setHeight(round((self.height - 2 * self.padding_vertical) * self.ratio))
+        footer = TextWidget(self.footer).setHeight(round((self.height - 2 * self.padding_vertical) * self.ratio))
+        body = self.prepareBody()
         module = VStack().setPadding(vertical = self.padding_vertical, horizontal = self.padding_horizontal)
         module.setHeight(self.height).setWidth(self.width).addView(header).addView(body).addView(footer).prepareChild()
 
@@ -110,3 +118,79 @@ class ModuleWidget(View):
 
         super().render()
         return self.image
+    
+class MainModuleWidget(ModuleWidget):
+    def __init__(self, module, ratio: float = 0.2, unit: str = None, unit_ratio: float = 0.2):
+        config = ConfigHelper()
+        header = str(module['dashboard_data']['Humidity']) + "%, " + str(module['dashboard_data']['CO2']) + "ppm"
+        body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
+        footer = module['module_name']
+        super().__init__(header, body, footer, ratio, unit, unit_ratio)
+        if module['dashboard_data']['Humidity'] >= config.highlight_humidity or module['dashboard_data']['CO2'] >= config.highlight_co2:
+            self.invert()
+    
+class OutdoorModuleWidget(ModuleWidget):
+    def __init__(self, module, main_module, ratio: float = 0.2, unit: str = None, unit_ratio: float = 0.2):
+        config = ConfigHelper()
+        header = str(module['dashboard_data']['Humidity']) + "%, " + config.format_decimal(main_module['dashboard_data']['Pressure']) + "mbar"
+        body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
+        footer = module['module_name'] + " (Stand " + datetime.fromtimestamp(main_module['last_status_store']).strftime('%H:%M') + ")"
+        super().__init__(header, body, footer, ratio, unit, unit_ratio)
+        if module['battery_percent'] < config.highlight_battery:
+            self.setShowFrame(show_frame = True)
+
+class IndoorModuleWidget(ModuleWidget):
+    def __init__(self, module, ratio: float = 0.2, unit: str = None, unit_ratio: float = 0.2):
+        config = ConfigHelper()
+        header = str(module['dashboard_data']['Humidity']) + "%, " + str(module['dashboard_data']['CO2']) + "ppm"
+        body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
+        footer = module['module_name']
+        super().__init__(header, body, footer, ratio, unit, unit_ratio)
+        if module['battery_percent'] < config.highlight_battery:
+            self.setShowFrame(show_frame = True)
+        if module['dashboard_data']['Humidity'] >= config.highlight_humidity or module['dashboard_data']['CO2'] >= config.highlight_co2:
+            self.invert()
+    
+class RainModuleWidget(ModuleWidget):
+    def __init__(self, module, main_module, netatmo_client: WeatherStationData, ratio: float = 0.2, unit: str = "mm", unit_ratio: float = 0.2):
+        config = ConfigHelper()
+
+        # Get hourly rain of last month
+        now = datetime.now(timezone.utc).timestamp()
+        last_month  = now - 36 * 24 * 3600
+        try:
+            measure = netatmo_client.getMeasure(main_module["_id"], '1hour', 'sum_rain', module["_id"], date_begin = last_month, date_end = now, optimize = True)
+            hours = 0
+        except:
+            logging.warning('Fetching rain data failed!')
+            hours = 0
+            unit = "?"
+
+        rain_hour_values = []
+
+        if measure and measure['body']:
+            for chunk in measure['body']:
+                rain_hour_values.extend(chunk['value'])
+            rain_hour_values = [v[0] for v in rain_hour_values]
+            logging.debug('Rain values: %s', rain_hour_values)
+            for x in reversed(rain_hour_values):
+                if x > 0:
+                    break
+                hours = hours + 1
+            unit = 'h'
+            if hours > 24:
+                hours = int(hours / 24)
+                unit = 'd'
+
+        sum_rain = module['dashboard_data']['sum_rain_24'] if 'sum_rain_24' in module['dashboard_data'] else 0
+        header = "Regen vor " + str(hours) + unit
+        body = config.format_decimal(sum_rain)
+        footer = module['module_name']
+        super().__init__(header, body, footer, ratio, unit, unit_ratio)
+    
+class WindModuleWidget(ModuleWidget):
+    def __init__(self, module, ratio: float = 0.2, unit: str = None, unit_ratio: float = 0.2):
+        config = ConfigHelper()
+
+        super().__init__()
+    

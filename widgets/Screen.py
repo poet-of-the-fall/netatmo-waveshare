@@ -4,16 +4,18 @@ except ImportError:
     from typing_extensions import Self
 from PIL import Image
 from .View import View
+from .ConfigHelper import ConfigHelper
 from datetime import datetime, timezone
 
 class Screen(View):
     save_image: bool
 
-    def __init__(self, width: int, height: int, save_image: bool = False):
+    def __init__(self, width: int = None, height: int = None):
         super().__init__()
-        self.setSize(width = width, height = height)
+        config = ConfigHelper()
+        self.setSize(width = width if width else config.image_width, height = height if height else config.image_height)
         self.image = Image.new('RGB', (self.width, self.height), (255, 255, 255))
-        self.save_image = save_image
+        self.save_image = config.export_image
     
     def setView(self, view: View) -> Self:
         self.view = view
