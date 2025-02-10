@@ -9,7 +9,7 @@ import os
 import sys
 import logging
 import locale
-from widgets import ConfigHelper, Screen, HStack, VStack, ZStack, Spacer, TextWidget, TextAlignHorizontal, MainModuleWidget, OutdoorModuleWidget, IndoorModuleWidget, RainModuleWidget, WindModuleWidget
+from widgets import *
 import signal
 
 libdir = "./e-Paper/RaspberryPi_JetsonNano/python/lib"
@@ -79,6 +79,7 @@ while True:
         continue
 
     main_module = [weatherData.stations[weatherData.default_station]]
+    second_station = [weatherData.stations['Barbing (Keller)']]
     outdoor_module = []
     rain_module = []
     wind_module = []
@@ -111,9 +112,9 @@ while True:
 
     # First row
     # Left part
-    outdoor_module_widget = OutdoorModuleWidget(outdoor_module[0], main_module[0]).setWidth(350)
+    outdoor_module_widget = OutdoorModuleWidget(outdoor_module[0], main_module[0], 0.15).setWidth(335)
 
-    # Right part
+    # Middle part
     coords = weatherData.stations[weatherData.default_station]['place']['location']
     tzone = pytz.timezone(weatherData.stations[weatherData.default_station]['place']['timezone'])
     sun = Sun(coords[1], coords[0])
@@ -123,38 +124,48 @@ while True:
 
     current_date = datetime.now().strftime('%d. %B')#.decode('utf-8')
 
-    date_display = TextWidget(current_date).setHeight(80).setTextSize(66).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
+    date_display = TextWidget(current_date).setHeight(60).setTextSize(50).setTextAlignHorizontal(TextAlignHorizontal.CENTER)
 
-    sunrise_text = TextWidget("Sonnenaufgang:").setTextSize(22).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
-    sunset_text = TextWidget("Sonnenuntergang:").setTextSize(22).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
-    sun_text = VStack().setWidth(200).addView(sunrise_text).addView(sunset_text)
+    sunrise_text = TextWidget("Sonnenaufgang:").setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
+    sunset_text = TextWidget("Sonnenuntergang:").setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
+    sun_text = VStack().setLayoutWeight(3).addView(sunrise_text).addView(sunset_text)
+    sunrise_time = TextWidget(rise_time).setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
+    sunset_time = TextWidget(set_time).setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
+    sun_value = VStack().addView(sunrise_time).addView(sunset_time)
+    sun_block = HStack().setGap(10).addView(Spacer()).addView(sun_text).addView(sun_value).addView(Spacer())
 
-    sunrise_time = TextWidget(rise_time).setTextSize(22).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
-    sunset_time = TextWidget(set_time).setTextSize(22).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
-    sun_time = VStack().setWidth(60).addView(sunrise_time).addView(sunset_time)
-
+    temp_min_text = TextWidget("Min:").setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
+    temp_max_text = TextWidget("Max:").setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
+    temp_text = VStack().addView(temp_min_text).addView(temp_max_text)
     min_temp = outdoor_module[0]['dashboard_data']['Temperature']
     if 'min_temp' in outdoor_module[0]['dashboard_data']: # might be empty right after midnight
         min_temp = outdoor_module[0]['dashboard_data']['min_temp']
     max_temp = outdoor_module[0]['dashboard_data']['Temperature']
     if 'max_temp' in outdoor_module[0]['dashboard_data']: 
         max_temp = outdoor_module[0]['dashboard_data']['max_temp']
-    temp_min_text = TextWidget("Min:").setTextSize(22).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
-    temp_max_text = TextWidget("Max:").setTextSize(22).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
-    temp_text = VStack().setWidth(60).addView(temp_min_text).addView(temp_max_text)
+    temp_min_value = TextWidget(config.format_decimal(min_temp) + u'\N{DEGREE SIGN}').setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
+    temp_max_value = TextWidget(config.format_decimal(max_temp) + u'\N{DEGREE SIGN}').setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
+    temp_value = VStack().addView(temp_min_value).addView(temp_max_value)
+    temp_block = HStack().setGap(10).addView(Spacer()).addView(temp_text).addView(temp_value).addView(Spacer())
 
-    temp_min_value = TextWidget(config.format_decimal(min_temp) + u'\N{DEGREE SIGN}').setTextSize(22).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
-    temp_max_value = TextWidget(config.format_decimal(max_temp) + u'\N{DEGREE SIGN}').setTextSize(22).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
-    temp_values = VStack().setWidth(60).addView(temp_min_value).addView(temp_max_value)
+    date_corner = VStack().addView(date_display).addView(Spacer().setHeight(15)).addView(sun_block).addView(temp_block)
 
-    day_info = HStack().setHeight(55).addView(sun_text).addView(sun_time).addView(Spacer()).addView(temp_text).addView(temp_values).addView(Spacer().setWidth(10))
+    # Right Part
+    other_outdoor_widgets = VStack().setGap(15).setWidth(160)
+    # Rain Module
+    if len(rain_module) > 0:
+        rain_module_widget = RainModuleWidget(rain_module[0], main_module[0], weatherData)
+        other_outdoor_widgets.addView(rain_module_widget)
+    # Wind Module
+    if len(wind_module) > 0:
+        wind_module_widget = WindModuleWidget(wind_module[0])
+        other_outdoor_widgets.addView(wind_module_widget)
 
-    date_corner = VStack().setWidth(450).addView(Spacer()).addView(date_display).addView(Spacer().setHeight(10)).addView(day_info).addView(Spacer())
-    top_row = HStack().addView(outdoor_module_widget).addView(Spacer()).addView(date_corner).setHeight(180)
+    top_row = HStack().setGap(15).addView(outdoor_module_widget).addView(date_corner).addView(other_outdoor_widgets).setHeight(185)
     base_layout.addView(top_row)
 
     # Second row
-    module_widgets_row = HStack().setHeight(125).setGap(15).setPadding(horizontal = 0, vertical = 10)
+    module_widgets_row = HStack().setHeight(115).setGap(15).setPadding(horizontal = 0, vertical = 15)
 
     # Main Module
     main_module_widget = MainModuleWidget(main_module[0])
@@ -165,10 +176,10 @@ while True:
         other_module_widget = IndoorModuleWidget(module)
         module_widgets_row.addView(other_module_widget)
 
-    # Rain Module
-    if len(rain_module) > 0:
-        rain_module_widget = RainModuleWidget(rain_module[0], main_module[0], weatherData)
-        module_widgets_row.addView(rain_module_widget)
+    # Module from other station
+    if second_station[0]:
+        other_module_widget = MainModuleWidget(second_station[0])
+        module_widgets_row.addView(other_module_widget)
 
     base_layout.addView(module_widgets_row)
 

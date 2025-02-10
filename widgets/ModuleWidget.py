@@ -6,6 +6,7 @@ from .View import View
 from .VStack import VStack
 from .HStack import HStack
 from .TextWidget import TextWidget, TextAlignVertical
+from .ImageWidget import WindDirectionImage
 from .ConfigHelper import ConfigHelper
 from PIL import Image, ImageDraw, ImageFont
 import os
@@ -16,7 +17,7 @@ import logging
 
 class ModuleWidget(View):
     header: str
-    body: str
+    body: str | View
     footer: str
     ratio: float
     unit: str = None
@@ -98,7 +99,10 @@ class ModuleWidget(View):
     def render(self) -> Image:
         header = TextWidget(self.header).setHeight(round((self.height - 2 * self.padding_vertical) * self.ratio))
         footer = TextWidget(self.footer).setHeight(round((self.height - 2 * self.padding_vertical) * self.ratio))
-        body = self.prepareBody()
+        if type(self.body) is str:
+            body = self.prepareBody()
+        else:
+            body = self.body.setWidth(self.width - 2 * self.padding_horizontal).setHeight(round((self.height - 2 * self.padding_vertical) * ( 1 - 2 * self.ratio)))
         module = VStack().setPadding(vertical = self.padding_vertical, horizontal = self.padding_horizontal)
         module.setHeight(self.height).setWidth(self.width).addView(header).addView(body).addView(footer).prepareChild()
 
@@ -158,32 +162,32 @@ class RainModuleWidget(ModuleWidget):
         # Get hourly rain of last month
         now = datetime.now(timezone.utc).timestamp()
         last_month  = now - 36 * 24 * 3600
+        hours = 0
+        time_unit = "?"
         try:
             measure = netatmo_client.getMeasure(main_module["_id"], '1hour', 'sum_rain', module["_id"], date_begin = last_month, date_end = now, optimize = True)
             hours = 0
+
+            rain_hour_values = []
+
+            if measure and measure['body']:
+                for chunk in measure['body']:
+                    rain_hour_values.extend(chunk['value'])
+                rain_hour_values = [v[0] for v in rain_hour_values]
+                logging.debug('Rain values: %s', rain_hour_values)
+                for x in reversed(rain_hour_values):
+                    if x > 0:
+                        break
+                    hours = hours + 1
+                time_unit = 'h'
+                if hours > 24:
+                    hours = int(hours / 24)
+                    time_unit = 'd'
         except:
             logging.warning('Fetching rain data failed!')
-            hours = 0
-            unit = "?"
-
-        rain_hour_values = []
-
-        if measure and measure['body']:
-            for chunk in measure['body']:
-                rain_hour_values.extend(chunk['value'])
-            rain_hour_values = [v[0] for v in rain_hour_values]
-            logging.debug('Rain values: %s', rain_hour_values)
-            for x in reversed(rain_hour_values):
-                if x > 0:
-                    break
-                hours = hours + 1
-            unit = 'h'
-            if hours > 24:
-                hours = int(hours / 24)
-                unit = 'd'
 
         sum_rain = module['dashboard_data']['sum_rain_24'] if 'sum_rain_24' in module['dashboard_data'] else 0
-        header = "Regen vor " + str(hours) + unit
+        header = "Regen vor " + str(hours) + time_unit
         body = config.format_decimal(sum_rain)
         footer = module['module_name']
         super().__init__(header, body, footer, ratio, unit, unit_ratio)
@@ -191,6 +195,8 @@ class RainModuleWidget(ModuleWidget):
 class WindModuleWidget(ModuleWidget):
     def __init__(self, module, ratio: float = 0.2, unit: str = None, unit_ratio: float = 0.2):
         config = ConfigHelper()
-
-        super().__init__()
+        header = "test"
+        body = WindDirectionImage(30)
+        footer = "test"
+        super().__init__(header, body, footer, ratio, unit, unit_ratio)
     
