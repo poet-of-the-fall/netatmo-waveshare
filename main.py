@@ -164,11 +164,11 @@ while True:
     other_outdoor_widgets = VStack().setGap(15).setWidth(160)
     # Rain Module
     if len(rain_module) > 0:
-        rain_module_widget = RainModuleWidget(rain_module[0], main_module[0], weatherData)
+        rain_module_widget = RainModuleWidget(rain_module[0], main_module[0], weatherData, 0.25)
         other_outdoor_widgets.addView(rain_module_widget)
     # Wind Module
     if len(wind_module) > 0:
-        wind_module_widget = WindModuleWidget(wind_module[0])
+        wind_module_widget = WindModuleWidget(wind_module[0], main_module[0], weatherData, 0.25)
         other_outdoor_widgets.addView(wind_module_widget)
 
     top_row = HStack().setGap(15).addView(outdoor_module_widget).addView(date_corner).addView(other_outdoor_widgets).setHeight(185)
@@ -178,23 +178,23 @@ while True:
     module_widgets_row = HStack().setHeight(115).setGap(15).setPadding(horizontal = 0, vertical = 15)
 
     # Main Module
-    main_module_widget = MainModuleWidget(main_module[0])
+    main_module_widget = MainModuleWidget(main_module[0], 0.25)
     module_widgets_row.addView(main_module_widget)
 
     # Additional Modules
     for module in other_modules:
-        other_module_widget = IndoorModuleWidget(module)
+        other_module_widget = IndoorModuleWidget(module, 0.25)
         module_widgets_row.addView(other_module_widget)
 
     # Module from other station
     if second_station[0]:
-        other_module_widget = MainModuleWidget(second_station[0])
+        other_module_widget = MainModuleWidget(second_station[0], 0.25)
         module_widgets_row.addView(other_module_widget)
 
     base_layout.addView(module_widgets_row)
 
     # Third row
-
+    
     base_layout.addView(Spacer())
     last_image = screen.render()
 

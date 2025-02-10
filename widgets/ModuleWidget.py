@@ -5,8 +5,9 @@ except ImportError:
 from .View import View
 from .VStack import VStack
 from .HStack import HStack
+from .ZStack import ZStack
 from .TextWidget import TextWidget, TextAlignVertical
-from .ImageWidget import WindDirectionImage
+from .ImageWidget import ImageWidget
 from .ConfigHelper import ConfigHelper
 from PIL import Image, ImageDraw, ImageFont
 import os
@@ -195,14 +196,46 @@ class RainModuleWidget(ModuleWidget):
             self.setShowFrame(show_frame = True)
     
 class WindModuleWidget(ModuleWidget):
-    def __init__(self, module, ratio: float = 0.2, unit: str = None, unit_ratio: float = 0.2):
+    def __init__(self, module, main_module, netatmo_client: WeatherStationData, ratio: float = 0.2, unit: str = None, unit_ratio: float = 0.2):
         config = ConfigHelper()
+
+        now = datetime.now(timezone.utc).timestamp()
+        last_day  = now - 24 * 3600
+        wind_angle_history = Image.new('RGBA', (100, 100), (255, 255, 255, 0))
+        draw_wind_angle = ImageDraw.Draw(wind_angle_history)
+        draw_wind_angle.ellipse((2, 2, 98, 98), (255, 255, 255, 1), (0, 0, 0), 4)
+        try:
+            measure = netatmo_client.getMeasure(main_module['_id'], '30min', 'windangle', module['_id'], date_begin = last_day, date_end = now, optimize = True)
+            angle_values = []
+            if measure and measure['body']:
+                for chunk in measure['body']:
+                    angle_values.extend(chunk['value'])
+                angle_values = [v[0] for v in angle_values]
+                logging.debug('Wind angle values: %s', angle_values)
+                for x in angle_values:
+                    draw_wind_angle.arc((10, 10, 90, 90), x - 95, x - 85, (0, 0, 0), 10)
+        except:
+            logging.warning('Fetching wind angle data failed!')
+
+        current_angle = 360 - module['dashboard_data']['WindAngle'] if module['dashboard_data']['WindAngle'] else 0
+        current_strength = module['dashboard_data']['WindStrength'] if module['dashboard_data']['WindStrength'] else 1
+        wind_gauge = Image.new('RGBA', (100, 100), (255, 255, 255, 0))
+        draw_wind_gauge = ImageDraw.Draw(wind_gauge)
+        polygon_points = [(30, 30), (50, 42), (70, 30), (50, 75), (30, 30)]
+        if current_strength >= config.highlight_calm_max:
+            draw_wind_gauge.polygon(polygon_points, (0, 0, 0))
+        else:
+            draw_wind_gauge.ellipse((40, 40, 60, 60), (0, 0, 0))
+        wind_gauge = wind_gauge.rotate(current_angle, resample=Image.Resampling.BICUBIC)
+
+        wind_angle_history.paste(wind_gauge, mask=wind_gauge)
+
         header = str(module['dashboard_data']['WindStrength']) + 'km/h (max: ' + str(module['dashboard_data']['max_wind_str']) + ')'
-        body = WindDirectionImage(module).setPadding(2, 2)
+        body = ZStack().addView(ImageWidget(wind_angle_history)).setPadding(2, 2)
         footer = module['module_name']
         super().__init__(header, body, footer, ratio, unit, unit_ratio)
         if module['battery_percent'] < config.highlight_battery_min:
             self.setShowFrame(show_frame = True)
-        if module['dashboard_data']['WindStrength'] >= config.highlight_gale_max:
+        if module['dashboard_data']['WindStrength'] >= config.highlight_wind_max:
             self.invert()
     

@@ -25,8 +25,7 @@ class ConfigHelper(metaclass=Singleton):
     highlight_co2_max: int
     highlight_battery_min: int
     highlight_calm_max: int
-    highlight_breeze_max: int
-    highlight_gale_max: int
+    highlight_wind_max: int
 
     def __init__(self):
         # Load the config.ini file
@@ -44,8 +43,7 @@ class ConfigHelper(metaclass=Singleton):
         self.highlight_co2_max = config.getint('highlight', 'co2_max', fallback=2000)
         self.highlight_battery_min = config.getint('highlight', 'battery_min', fallback=25)
         self.highlight_calm_max = config.getint('highlight', 'calm_max', fallback=2)
-        self.highlight_breeze_max = config.getint('highlight', 'breeze_max', fallback=50)
-        self.highlight_gale_max = config.getint('highlight', 'gale_max', fallback=89)
+        self.highlight_wind_max = config.getint('highlight', 'wind_max', fallback=50)
 
     def format_decimal(self, value) -> str:
         return str(round(float(value), 1)).replace(".", self.decimal_marker)
