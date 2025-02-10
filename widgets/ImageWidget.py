@@ -25,6 +25,7 @@ class ImageWidget(View):
         return self
 
     def render(self) -> Image:
+        self.image = self.image.convert("RGBA")
         resized_image = Image.new("RGBA", self.image.size, (255, 255, 255))
         resized_image.paste(self.image, mask=self.image)
         resized_image.thumbnail((self.width - 2 * self.padding_horizontal, self.height - 2 * self.padding_vertical))

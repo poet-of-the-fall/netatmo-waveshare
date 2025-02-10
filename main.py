@@ -31,6 +31,8 @@ logging.basicConfig(filename='log.log',format='%(asctime)s %(levelname)s: %(mess
 if not config.export_image:
     from waveshare_epd import epd7in5_HD as epd
     from waveshare_epd import epdconfig
+else:
+    epd = None
     
 # Handle script exit
 def exit_handler(first=None, second=None):
@@ -45,24 +47,26 @@ signal.signal(signal.SIGINT, exit_handler)
 signal.signal(signal.SIGTERM, exit_handler)
 signal.signal(signal.SIGABRT, exit_handler)
 
+def renderToDisplay():
+    if epd:
+        try:
+            logging.info("Power up display")
+            epd.EPD().init()
+            epd.EPD().Clear()
+            epd.EPD().display(epd.EPD().getbuffer(last_image))
+
+        except IOError as e:
+            logging.info(e)
+
+        except KeyboardInterrupt:
+            exit_handler()
+
 welcomeText = TextWidget("Netatmo").addTextLine("Display").setPadding(vertical = 100, horizontal = 100)
 welcomeScreen = Screen().setView(welcomeText)
 last_image = welcomeScreen.render()
+renderToDisplay()
+
 lastUpdate = 0
-
-if not config.export_image:
-    try:
-        logging.info("Power up display")
-        epd.EPD().init()
-        epd.EPD().Clear()
-        epd.EPD().display(epd.EPD().getbuffer(last_image))
-
-    except IOError as e:
-        logging.info(e)
-
-    except KeyboardInterrupt:
-        exit_handler()
-
 authorization = lnetatmo.ClientAuth()
 
 while True:
@@ -75,6 +79,12 @@ while True:
         # print(weatherData.modules)
     except:
         logging.warning('Fetching data failed! Waiting 20 Minutes.')
+        warning_text = TextWidget("Aktuelle Daten konnten nicht geladen werden.").setTextAlignHorizontal(TextAlignHorizontal.CENTER).setHeight(25).invert()
+        warning_message = VStack().addView(Spacer()).addView(warning_text).addView(Spacer())
+        layers = ZStack().addView(ImageWidget(last_image)).addView(warning_message)
+        screen = Screen().setView(layers)
+        last_image = screen.render()
+        renderToDisplay()
         time.sleep(1200)
         continue
 
@@ -189,16 +199,7 @@ while True:
     last_image = screen.render()
 
     # Draw image
-    if not config.export_image:
-        try:
-            epd.EPD().display(epd.EPD().getbuffer(last_image))
-        
-        except IOError as e:
-            logging.info(e)
-            continue
-        
-        except KeyboardInterrupt:    
-            exit_handler()
+    renderToDisplay()
 
     # Wait time for next update
     delta = (datetime.now() - updateTime).total_seconds()
