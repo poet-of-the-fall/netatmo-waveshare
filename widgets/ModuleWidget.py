@@ -17,7 +17,7 @@ import logging
 
 class ModuleWidget(View):
     header: str
-    body: str | View
+    body: None # should be: str | View
     footer: str
     ratio: float
     unit: str = None
@@ -130,7 +130,7 @@ class MainModuleWidget(ModuleWidget):
         body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
         footer = module['module_name']
         super().__init__(header, body, footer, ratio, unit, unit_ratio)
-        if module['dashboard_data']['Humidity'] >= config.highlight_humidity or module['dashboard_data']['CO2'] >= config.highlight_co2:
+        if module['dashboard_data']['Humidity'] >= config.highlight_humidity_max or module['dashboard_data']['CO2'] >= config.highlight_co2_max:
             self.invert()
     
 class OutdoorModuleWidget(ModuleWidget):
@@ -140,7 +140,7 @@ class OutdoorModuleWidget(ModuleWidget):
         body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
         footer = module['module_name'] + " (Stand " + datetime.fromtimestamp(main_module['last_status_store']).strftime('%H:%M') + ")"
         super().__init__(header, body, footer, ratio, unit, unit_ratio)
-        if module['battery_percent'] < config.highlight_battery:
+        if module['battery_percent'] < config.highlight_battery_min:
             self.setShowFrame(show_frame = True)
 
 class IndoorModuleWidget(ModuleWidget):
@@ -150,9 +150,9 @@ class IndoorModuleWidget(ModuleWidget):
         body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
         footer = module['module_name']
         super().__init__(header, body, footer, ratio, unit, unit_ratio)
-        if module['battery_percent'] < config.highlight_battery:
+        if module['battery_percent'] < config.highlight_battery_min:
             self.setShowFrame(show_frame = True)
-        if module['dashboard_data']['Humidity'] >= config.highlight_humidity or module['dashboard_data']['CO2'] >= config.highlight_co2:
+        if module['dashboard_data']['Humidity'] >= config.highlight_humidity_max or module['dashboard_data']['CO2'] >= config.highlight_co2_max:
             self.invert()
     
 class RainModuleWidget(ModuleWidget):
@@ -191,12 +191,18 @@ class RainModuleWidget(ModuleWidget):
         body = config.format_decimal(sum_rain)
         footer = module['module_name']
         super().__init__(header, body, footer, ratio, unit, unit_ratio)
+        if module['battery_percent'] < config.highlight_battery_min:
+            self.setShowFrame(show_frame = True)
     
 class WindModuleWidget(ModuleWidget):
     def __init__(self, module, ratio: float = 0.2, unit: str = None, unit_ratio: float = 0.2):
         config = ConfigHelper()
-        header = "test"
-        body = WindDirectionImage(30)
-        footer = "test"
+        header = str(module['dashboard_data']['WindStrength']) + 'km/h (max: ' + str(module['dashboard_data']['max_wind_str']) + ')'
+        body = WindDirectionImage(module).setPadding(2, 2)
+        footer = module['module_name']
         super().__init__(header, body, footer, ratio, unit, unit_ratio)
+        if module['battery_percent'] < config.highlight_battery_min:
+            self.setShowFrame(show_frame = True)
+        if module['dashboard_data']['WindStrength'] >= config.highlight_gale_max:
+            self.invert()
     

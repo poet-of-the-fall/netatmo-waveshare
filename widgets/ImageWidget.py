@@ -3,7 +3,8 @@ try:
 except ImportError:
     from typing_extensions import Self
 from .View import View
-from PIL import Image, ImageDraw
+from .ConfigHelper import ConfigHelper
+from PIL import Image
 from pathlib import Path
     
 class ImageWidget(View):
@@ -26,7 +27,7 @@ class ImageWidget(View):
     def render(self) -> Image:
         resized_image = Image.new("RGBA", self.image.size, (255, 255, 255))
         resized_image.paste(self.image, mask=self.image)
-        resized_image.thumbnail((self.width, self.height))
+        resized_image.thumbnail((self.width - 2 * self.padding_horizontal, self.height - 2 * self.padding_vertical))
 
         bbox = resized_image.getbbox()
         left = round((self.width - bbox[2]) / 2)
@@ -38,7 +39,15 @@ class ImageWidget(View):
         return rearranged_image
     
 class WindDirectionImage(ImageWidget):
-    def __init__(self, rotation: float = 0.0):
+    def __init__(self, module):
+        config = ConfigHelper()
         path = Path.cwd()
-        image = Image.open(path / 'images' / 'wind_direction.png')
+        rotation = 360 - module['dashboard_data']['WindAngle'] if module['dashboard_data']['WindAngle'] else 0
+        strength = module['dashboard_data']['WindStrength'] if module['dashboard_data']['WindStrength'] else 1
+        icon_name = 'wind_direction_calm.png'
+        if strength >= config.highlight_breeze_max:
+            icon_name = 'wind_direction_gale.png'
+        elif strength >= config.highlight_calm_max:
+            icon_name = 'wind_direction_breeze.png'
+        image = Image.open(path / 'images' / icon_name)
         super().__init__(image, rotation)

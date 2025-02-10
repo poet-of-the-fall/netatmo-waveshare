@@ -21,9 +21,12 @@ class ConfigHelper(metaclass=Singleton):
     export_image: bool
     image_width: int
     image_height: int
-    humidity: int
-    co2: int
-    battery: int
+    highlight_humidity_max: int
+    highlight_co2_max: int
+    highlight_battery_min: int
+    highlight_calm_max: int
+    highlight_breeze_max: int
+    highlight_gale_max: int
 
     def __init__(self):
         # Load the config.ini file
@@ -37,9 +40,12 @@ class ConfigHelper(metaclass=Singleton):
         self.export_image = config.getboolean('general','export_image', fallback=False)
         self.image_width = config.getint('general', 'image_width', fallback=880)
         self.image_height = config.getint('general', 'image_height', fallback=528)
-        self.highlight_humidity = config.getint('highlight', 'humidity', fallback=70)
-        self.highlight_co2 = config.getint('highlight', 'co2', fallback=2000)
-        self.highlight_battery = config.getint('highlight', 'battery', fallback=25)
+        self.highlight_humidity_max = config.getint('highlight', 'humidity_max', fallback=70)
+        self.highlight_co2_max = config.getint('highlight', 'co2_max', fallback=2000)
+        self.highlight_battery_min = config.getint('highlight', 'battery_min', fallback=25)
+        self.highlight_calm_max = config.getint('highlight', 'calm_max', fallback=2)
+        self.highlight_breeze_max = config.getint('highlight', 'breeze_max', fallback=50)
+        self.highlight_gale_max = config.getint('highlight', 'gale_max', fallback=89)
 
     def format_decimal(self, value) -> str:
         return str(round(float(value), 1)).replace(".", self.decimal_marker)

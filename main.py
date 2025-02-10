@@ -118,35 +118,35 @@ while True:
     coords = weatherData.stations[weatherData.default_station]['place']['location']
     tzone = pytz.timezone(weatherData.stations[weatherData.default_station]['place']['timezone'])
     sun = Sun(coords[1], coords[0])
-    rise_time = sun.get_sunrise_time().astimezone(tzone).strftime("%H:%M")
-    set_time = sun.get_sunset_time().astimezone(tzone).strftime("%H:%M")
+    rise_time = sun.get_sunrise_time().astimezone(tzone).strftime("%-H:%M")
+    set_time = sun.get_sunset_time().astimezone(tzone).strftime("%-H:%M")
     logging.debug('Sunrise is %s and Sunset at %s', rise_time, set_time)
 
     current_date = datetime.now().strftime('%d. %B')#.decode('utf-8')
 
     date_display = TextWidget(current_date).setHeight(60).setTextSize(50).setTextAlignHorizontal(TextAlignHorizontal.CENTER)
 
-    sunrise_text = TextWidget("Sonnenaufgang:").setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
-    sunset_text = TextWidget("Sonnenuntergang:").setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
-    sun_text = VStack().setLayoutWeight(3).addView(sunrise_text).addView(sunset_text)
-    sunrise_time = TextWidget(rise_time).setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
-    sunset_time = TextWidget(set_time).setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
+    sunrise_time = TextWidget(rise_time).setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
+    sunset_time = TextWidget(set_time).setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
     sun_value = VStack().addView(sunrise_time).addView(sunset_time)
-    sun_block = HStack().setGap(10).addView(Spacer()).addView(sun_text).addView(sun_value).addView(Spacer())
+    sunrise_text = TextWidget("Sonnenaufgang").setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.LEFT).setTextAlignVertical(TextAlignVertical.BOTTOM)
+    sunset_text = TextWidget("Sonnenuntergang").setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.LEFT).setTextAlignVertical(TextAlignVertical.BOTTOM)
+    sun_text = VStack().setLayoutWeight(3).addView(sunrise_text).addView(sunset_text)
+    sun_block = HStack().setGap(10).addView(Spacer()).addView(sun_value).addView(sun_text).addView(Spacer())
 
-    temp_min_text = TextWidget("Min:").setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
-    temp_max_text = TextWidget("Max:").setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
-    temp_text = VStack().addView(temp_min_text).addView(temp_max_text)
     min_temp = outdoor_module[0]['dashboard_data']['Temperature']
     if 'min_temp' in outdoor_module[0]['dashboard_data']: # might be empty right after midnight
         min_temp = outdoor_module[0]['dashboard_data']['min_temp']
     max_temp = outdoor_module[0]['dashboard_data']['Temperature']
     if 'max_temp' in outdoor_module[0]['dashboard_data']: 
         max_temp = outdoor_module[0]['dashboard_data']['max_temp']
-    temp_min_value = TextWidget(config.format_decimal(min_temp) + u'\N{DEGREE SIGN}').setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
-    temp_max_value = TextWidget(config.format_decimal(max_temp) + u'\N{DEGREE SIGN}').setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
+    temp_min_value = TextWidget(config.format_decimal(min_temp) + u'\N{DEGREE SIGN}').setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
+    temp_max_value = TextWidget(config.format_decimal(max_temp) + u'\N{DEGREE SIGN}').setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
     temp_value = VStack().addView(temp_min_value).addView(temp_max_value)
-    temp_block = HStack().setGap(10).addView(Spacer()).addView(temp_text).addView(temp_value).addView(Spacer())
+    temp_min_text = TextWidget("Min").setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
+    temp_max_text = TextWidget("Max").setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.LEFT)
+    temp_text = VStack().addView(temp_min_text).addView(temp_max_text)
+    temp_block = HStack().setGap(10).addView(Spacer()).addView(temp_value).addView(temp_text).addView(Spacer())
 
     date_corner = VStack().addView(date_display).addView(Spacer().setHeight(15)).addView(sun_block).addView(temp_block)
 
