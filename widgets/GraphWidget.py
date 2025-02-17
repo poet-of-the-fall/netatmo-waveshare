@@ -40,8 +40,9 @@ class GraphWidget(View):
     hour_tick_interval: int
     rain_module: bool
     rain_max: int
+    rain_steps: int
 
-    def __init__(self, main_module, graph_module, netatmo_client: WeatherStationData, density: int = 4, show_days: bool = True, day_height: int = 20, temp_min: int = -10, temp_max: int = 40, temp_steps: int = 10, temp_size: int = 10, indicator_size: int = 3, line_width: int = 1, current_value_radius: int = 2, hour_tick_interval: int = 6, rain_module = None, rain_max: int = 10):
+    def __init__(self, main_module, graph_module, netatmo_client: WeatherStationData, density: int = 4, show_days: bool = True, day_height: int = 20, temp_min: int = -10, temp_max: int = 40, temp_steps: int = 10, temp_size: int = 10, indicator_size: int = 3, line_width: int = 1, current_value_radius: int = 2, hour_tick_interval: int = 6, rain_module = None, rain_max: int = 10, rain_steps: int = 10):
         super().__init__()
         self.main_module = main_module
         self.graph_module = graph_module
@@ -59,6 +60,7 @@ class GraphWidget(View):
         self.setHourTickInterval(hour_tick_interval)
         self.setRainModule(rain_module)
         self.setRainMax(rain_max)
+        self.setRainSteps(rain_steps)
 
     def setDensity(self, density: int) -> Self:
         self.density = density
@@ -112,10 +114,14 @@ class GraphWidget(View):
         self.rain_max = rain_max
         return self
     
+    def setRainSteps(self, rain_steps: int) -> Self:
+        self.rain_steps = rain_steps
+        return self
+    
     def roundTimestampToHalfHours(self, timestamp: datetime) -> datetime:
-        if (timestamp.minute < 15):
+        if timestamp.minute < 15:
             return timestamp.replace(second = 0, microsecond = 0, minute = 0)
-        elif (timestamp.minute < 45):
+        elif timestamp.minute < 45:
             return timestamp.replace(second = 0, microsecond = 0, minute = 30)
         else:
             return timestamp.replace(second = 0, microsecond = 0, minute = 0) + timedelta(hours = 1)
@@ -266,11 +272,15 @@ class GraphWidget(View):
             draw.line((x_start - self.indicator_size, y_position, x_start, y_position), fill = 0)
             temp_indicator = temp_indicator - self.temp_steps
         if self.rain_module:
-            y_position = y_zero - (rain_resolution * self.rain_max)
-            text = str(self.rain_max) + 'mm'
-            l, t, r, b = draw.textbbox((0,0), text, indicator_font)
-            draw.text((x_start + self.indicator_size, y_position - (b / 2) - 1), text, font = indicator_font, fill = 0)
-            draw.line((x_start, y_position, x_start + self.indicator_size, y_position), fill = 0)
+            rain_indicator = self.rain_steps
+            while rain_indicator <= self.rain_max:
+                y_position = y_zero - (rain_resolution * rain_indicator)
+                if rain_indicator + self.rain_steps > self.rain_max:
+                    text = str(rain_indicator) + 'mm'
+                    l, t, r, b = draw.textbbox((0,0), text, indicator_font)
+                    draw.text((x_start + self.indicator_size, y_position - (b / 2) - 1), text, font = indicator_font, fill = 0)
+                draw.line((x_start, y_position, x_start + self.indicator_size, y_position), fill = 0)
+                rain_indicator = rain_indicator + self.rain_steps
 
         # Draw x axis
         draw.line((x_start, y_zero, self.width - self.padding_horizontal, y_zero), fill = 0) # x axis
@@ -290,9 +300,13 @@ class GraphWidget(View):
                     y_position = y_zero - (temp_resolution * temp_indicator)
                     draw.line((dp.x_position - self.indicator_size, y_position, dp.x_position, y_position), fill = 0)
                     temp_indicator = temp_indicator - self.temp_steps
-                if (self.rain_module):
-                    y_position = y_zero - (rain_resolution * self.rain_max)
-                    draw.line((dp.x_position, y_position, dp.x_position + self.indicator_size, y_position), fill = 0)
+                if self.rain_module:
+                    rain_indicator = self.rain_steps
+                    while rain_indicator <= self.rain_max:
+                        y_position = y_zero - (rain_resolution * rain_indicator)
+                        draw.line((dp.x_position, y_position, dp.x_position + self.indicator_size, y_position), fill = 0)
+                        rain_indicator = rain_indicator + self.rain_steps
+                        
 
             # Draw hour marker if needed
             if dp.show_tick:
@@ -337,11 +351,11 @@ class GraphWidget(View):
                 length = draw.textlength(full_text, day_font)
                 short_length = draw.textlength(short_text, day_font)
                 l, t, r, b = draw.textbbox((0,0), full_text, day_font)
-                if (length <= available_space):
+                if length <= available_space:
                     offset = math.floor((available_space - length) / 2)
                     y_position = self.height - self.padding_vertical - b
                     draw.text((dp.x_position + offset, y_position), full_text, font = day_font, fill = 0)
-                elif (short_length <= available_space):
+                elif short_length <= available_space:
                     offset = math.floor((available_space - short_length) / 2)
                     y_position = self.height - self.padding_vertical - b
                     draw.text((dp.x_position + offset, y_position), short_text, font = day_font, fill = 0)
