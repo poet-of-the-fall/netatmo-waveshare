@@ -195,7 +195,7 @@ while True:
 
     # Third row
     
-    base_layout.addView(Spacer())
+    base_layout.addView(GraphWidget(main_module[0], outdoor_module[0], weatherData, rain_module=(rain_module[0] if len(rain_module) > 0 else None)))
     last_image = screen.render()
 
     # Draw image
