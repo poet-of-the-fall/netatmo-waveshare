@@ -155,7 +155,7 @@ class GraphWidget(View):
         # Prepare width variables
         indicator_text_length = max(draw.textlength(str(self.temp_min) + u'\N{DEGREE SIGN}', indicator_font), draw.textlength(str(self.temp_max)  + u'\N{DEGREE SIGN}', indicator_font))
         x_start = self.padding_horizontal + indicator_text_length + self.indicator_size
-        graph_width = self.width - 2 * self.padding_horizontal - indicator_text_length - self.indicator_size
+        graph_width = self.width - 2 * self.padding_horizontal - indicator_text_length - self.indicator_size - self.current_value_radius
         
         # Calculate time range
         hours_visible = math.ceil(graph_width / (self.density * 2))
