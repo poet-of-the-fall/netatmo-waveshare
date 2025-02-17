@@ -299,7 +299,7 @@ class GraphWidget(View):
                 draw.line((dp.x_position, y_zero, dp.x_position, y_zero + self.indicator_size), fill = 0)
 
             # Draw temp value
-            if dp.temp_value and i < len(data) - 1 and data[i + 1].temp_value:
+            if dp.temp_value != None and i < len(data) - 1 and data[i + 1].temp_value != None:
                 x1 = dp.x_position
                 y1 = y_zero - max(min(dp.temp_value, self.temp_max), self.temp_min) * temp_resolution
                 x2 = data[i + 1].x_position
