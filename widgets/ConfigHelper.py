@@ -33,14 +33,14 @@ class ConfigHelper(metaclass=Singleton):
         config.read(path / 'config.ini')
         
         # Load values
-        self.decimal_marker = config.get('general', 'decimal_marker', fallback=".")
+        self.decimal_marker = config.get('general', 'decimal_marker', fallback=",")
         self.log_level = config.get('general','log_level', fallback="none")
         self.export_image = config.getboolean('general','export_image', fallback=False)
         self.image_width = config.getint('general', 'image_width', fallback=880)
         self.image_height = config.getint('general', 'image_height', fallback=528)
-        self.highlight_humidity_max = config.getint('highlight', 'humidity_max', fallback=70)
+        self.highlight_humidity_max = config.getint('highlight', 'humidity_max', fallback=60)
         self.highlight_co2_max = config.getint('highlight', 'co2_max', fallback=2000)
-        self.highlight_battery_min = config.getint('highlight', 'battery_min', fallback=25)
+        self.highlight_battery_min = config.getint('highlight', 'battery_min', fallback=15)
         self.highlight_calm_max = config.getint('highlight', 'calm_max', fallback=2)
         self.highlight_wind_max = config.getint('highlight', 'wind_max', fallback=50)
 

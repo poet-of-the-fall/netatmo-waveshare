@@ -179,6 +179,7 @@ class GraphWidget(View):
                 dp.is_latest = True
             if dp.timestamp.hour == 0 and dp.timestamp.minute == 0:
                 dp.is_midnight = True
+                dp.day_text = dp.timestamp.strftime('%a') 
             if dp.timestamp.hour % self.hour_tick_interval == 0 and dp.timestamp.minute == 0:
                 dp.show_tick = True
             data.append(dp)
@@ -224,7 +225,6 @@ class GraphWidget(View):
                             dp = self.findNearestDataPoint(data, time)
                             value = values[i]
                             if dp:
-                                dp.day_text = time.strftime('%a') 
                                 dp.day_values = value
             except:
                 logging.warning('Fetching daily temperature min and max values for graph failed!')
@@ -344,9 +344,12 @@ class GraphWidget(View):
                         next_day = data[j]
                         break
                 available_space = next_day.x_position - dp.x_position
-                value_text = '(' + config.format_decimal(dp.day_values[0]) + u'\N{DEGREE SIGN}' + '/' + config.format_decimal(dp.day_values[1]) + u'\N{DEGREE SIGN}' + ')'
                 short_text = dp.day_text 
-                full_text = short_text + ' ' + value_text
+                full_text = short_text
+                value_text = ''
+                if dp.day_values and len(dp.day_values) == 2:
+                    value_text = '(' + config.format_decimal(dp.day_values[0]) + u'\N{DEGREE SIGN}' + '/' + config.format_decimal(dp.day_values[1]) + u'\N{DEGREE SIGN}' + ')'
+                    full_text = full_text + ' ' + value_text
                 
                 length = draw.textlength(full_text, day_font)
                 short_length = draw.textlength(short_text, day_font)
