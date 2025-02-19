@@ -16,10 +16,6 @@ class ZStack(View):
         self.view.append(view)
         return self
     
-    def setGap(self, gap: int) -> Self:
-        self.gap = gap
-        return self
-    
     def prepareChild(self) -> Self:
         for view in self.view:
             if (view.width == 0):
