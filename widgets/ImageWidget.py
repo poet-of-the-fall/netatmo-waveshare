@@ -9,7 +9,7 @@ class ImageWidget(View):
     image: Image = None
     rotation: float = 0.0
 
-    def __init__(self, image: Image = None, rotation: float = 0.0):
+    def __init__(self, image: Image, rotation: float = 0.0):
         super().__init__()
         self.setImage(image = image)
         self.setRotation(rotation)

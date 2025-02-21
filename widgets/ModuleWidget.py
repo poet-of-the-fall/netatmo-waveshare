@@ -125,32 +125,32 @@ class ModuleWidget(View):
         return self.image
     
 class MainModuleWidget(ModuleWidget):
-    def __init__(self, module, ratio: float = 0.2, unit: str = None, unit_ratio: float = 0.2):
+    def __init__(self, module, ratio: float = 0.2):
         config = ConfigHelper()
         header = str(module['dashboard_data']['Humidity']) + "%, " + str(module['dashboard_data']['CO2']) + "ppm"
         body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
         footer = module['module_name']
-        super().__init__(header, body, footer, ratio, unit, unit_ratio)
+        super().__init__(header, body, footer, ratio)
         if module['dashboard_data']['Humidity'] >= config.highlight_humidity_max or module['dashboard_data']['CO2'] >= config.highlight_co2_max:
             self.invert()
     
 class OutdoorModuleWidget(ModuleWidget):
-    def __init__(self, module, main_module, ratio: float = 0.2, unit: str = None, unit_ratio: float = 0.2):
+    def __init__(self, module, main_module, ratio: float = 0.2):
         config = ConfigHelper()
         header = str(module['dashboard_data']['Humidity']) + "%, " + config.format_decimal(main_module['dashboard_data']['Pressure']) + "mbar"
         body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
         footer = module['module_name'] + " (Stand " + datetime.fromtimestamp(main_module['last_status_store']).strftime('%H:%M') + ")"
-        super().__init__(header, body, footer, ratio, unit, unit_ratio)
+        super().__init__(header, body, footer, ratio)
         if module['battery_percent'] < config.highlight_battery_min:
             self.setShowFrame(show_frame = True)
 
 class IndoorModuleWidget(ModuleWidget):
-    def __init__(self, module, ratio: float = 0.2, unit: str = None, unit_ratio: float = 0.2):
+    def __init__(self, module, ratio: float = 0.2):
         config = ConfigHelper()
         header = str(module['dashboard_data']['Humidity']) + "%, " + str(module['dashboard_data']['CO2']) + "ppm"
         body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
         footer = module['module_name']
-        super().__init__(header, body, footer, ratio, unit, unit_ratio)
+        super().__init__(header, body, footer, ratio)
         if module['battery_percent'] < config.highlight_battery_min:
             self.setShowFrame(show_frame = True)
         if module['dashboard_data']['Humidity'] >= config.highlight_humidity_max or module['dashboard_data']['CO2'] >= config.highlight_co2_max:
@@ -196,7 +196,7 @@ class RainModuleWidget(ModuleWidget):
             self.setShowFrame(show_frame = True)
     
 class WindModuleWidget(ModuleWidget):
-    def __init__(self, module, main_module, netatmo_client: WeatherStationData, ratio: float = 0.2, unit: str = None, unit_ratio: float = 0.2):
+    def __init__(self, module, main_module, netatmo_client: WeatherStationData, ratio: float = 0.2):
         config = ConfigHelper()
 
         now = datetime.now(timezone.utc).timestamp()
@@ -230,10 +230,10 @@ class WindModuleWidget(ModuleWidget):
 
         wind_angle_history.paste(wind_gauge, mask=wind_gauge)
 
-        header = str(module['dashboard_data']['WindStrength']) + 'km/h (max: ' + str(module['dashboard_data']['max_wind_str']) + ')'
+        header = str(module['dashboard_data']['WindStrength']) + 'km/h (max: ' + str(module['dashboard_data']['max_wind_str'] if 'max_wind_str' in module['dashboard_data'] else 0) + ')'
         body = ZStack().addView(ImageWidget(wind_angle_history)).setPadding(2, 2)
         footer = module['module_name']
-        super().__init__(header, body, footer, ratio, unit, unit_ratio)
+        super().__init__(header, body, footer, ratio)
         if module['battery_percent'] < config.highlight_battery_min:
             self.setShowFrame(show_frame = True)
         if module['dashboard_data']['WindStrength'] >= config.highlight_wind_max:

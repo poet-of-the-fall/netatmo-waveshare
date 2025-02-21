@@ -42,10 +42,10 @@ class GraphWidget(View):
     rain_max: int
     rain_steps: int
 
-    def __init__(self, main_module, graph_module, netatmo_client: WeatherStationData, density: int = 4, show_days: bool = True, day_height: int = 20, temp_min: int = -10, temp_max: int = 40, temp_steps: int = 10, temp_size: int = 10, indicator_size: int = 3, line_width: int = 1, current_value_radius: int = 2, hour_tick_interval: int = 6, rain_module = None, rain_max: int = 10, rain_steps: int = 10):
+    def __init__(self, temperature_module, main_module, netatmo_client: WeatherStationData, density: int = 4, show_days: bool = True, day_height: int = 20, temp_min: int = -10, temp_max: int = 40, temp_steps: int = 10, temp_size: int = 10, indicator_size: int = 3, line_width: int = 1, current_value_radius: int = 2, hour_tick_interval: int = 6, rain_module = None, rain_max: int = 10, rain_steps: int = 10):
         super().__init__()
+        self.temperature_module = temperature_module
         self.main_module = main_module
-        self.graph_module = graph_module
         self.netatmo_client = netatmo_client
         self.setDensity(density)
         self.setShowDays(show_days)
@@ -190,7 +190,7 @@ class GraphWidget(View):
         # Get temperature data
         date_begin = now - hours_visible * 3600
         try:
-            temp_measures = self.netatmo_client.getMeasure(self.main_module['_id'], '30min', 'Temperature', self.graph_module['_id'], date_begin = date_begin, date_end = now, optimize = True)
+            temp_measures = self.netatmo_client.getMeasure(self.main_module['_id'], '30min', 'Temperature', self.temperature_module['_id'], date_begin = date_begin, date_end = now, optimize = True)
 
             if temp_measures:
                 for chunk in temp_measures['body']:
@@ -213,7 +213,7 @@ class GraphWidget(View):
         if self.show_days:
             date_begin  = now - days_visible * 24 * 3600
             try:
-                minmax_measures = self.netatmo_client.getMeasure(self.main_module['_id'], '1day', 'min_temp,max_temp', self.graph_module['_id'], date_begin = date_begin, date_end = now, optimize = True)
+                minmax_measures = self.netatmo_client.getMeasure(self.main_module['_id'], '1day', 'min_temp,max_temp', self.temperature_module['_id'], date_begin = date_begin, date_end = now, optimize = True)
                 
                 if minmax_measures:
                     for chunk in minmax_measures['body']:
