@@ -185,6 +185,7 @@ class GraphWidget(View):
             data.append(dp)
             x_position = x_position - self.density
             i = i + 1
+        data[-1].day_text = dp.timestamp.strftime('%a') 
         data.reverse()
 
         # Get temperature data
