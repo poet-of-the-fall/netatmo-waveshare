@@ -1,5 +1,6 @@
 try:
     from typing import Self
+    from typing import List
 except ImportError:
     from typing_extensions import Self
 from .View import View
@@ -20,7 +21,7 @@ class DataPoint(object):
     show_tick: bool = False
     is_latest: bool = False
     day_text: str = None
-    day_values: list[float] = None
+    day_values: List[float] = None
 
     def __str__(self):
         return f"timestamp: {self.timestamp}, x_position: {self.x_position}, temp_value: {self.temp_value}, rain_value: {self.rain_value}, day_text: {self.day_text}, day_values: {self.day_values}, is_midnight: {self.is_midnight}, show_tick: {self.show_tick}, is_latest: {self.is_latest}"
@@ -126,7 +127,7 @@ class GraphWidget(View):
         else:
             return timestamp.replace(second = 0, microsecond = 0, minute = 0) + timedelta(hours = 1)
         
-    def findNearestDataPoint(self, data: list[DataPoint], time: datetime) -> DataPoint:
+    def findNearestDataPoint(self, data: List[DataPoint], time: datetime) -> DataPoint:
         for i in range(len(data)):
             dp1 = data[i]
             dp2 = data[i + 1] if i < len(data) - 1 else None
@@ -168,7 +169,7 @@ class GraphWidget(View):
         days_visible = math.ceil(hours_visible / 24)
 
         # Prepare data
-        data: list[DataPoint] = []
+        data: List[DataPoint] = []
         x_position = x_start + math.floor((graph_width - self.current_value_radius) / self.density) * self.density
         i = 0
         while x_position >= x_start:

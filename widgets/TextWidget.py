@@ -1,5 +1,6 @@
 try:
     from typing import Self
+    from typing import List
 except ImportError:
     from typing_extensions import Self
 from .View import View
@@ -18,7 +19,7 @@ class TextAlignVertical(enum.Enum):
     BOTTOM = 3
     
 class TextWidget(View):
-    text: list[str]
+    text: List[str]
     text_align_horizontal: TextAlignHorizontal
     text_align_vertical: TextAlignVertical
     text_size: int

@@ -1,12 +1,13 @@
 try:
     from typing import Self
+    from typing import List
 except ImportError:
     from typing_extensions import Self
 from PIL import Image
 from .View import View
 
 class HStack(View):
-    view: list[View]
+    view: List[View]
     gap: int
 
     def __init__(self): 
