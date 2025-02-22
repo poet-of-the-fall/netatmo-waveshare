@@ -29,7 +29,7 @@ numeric_level = getattr(logging, config.log_level, None)
 logging.basicConfig(filename='log.log',format='%(asctime)s %(levelname)s: %(message)s',level=numeric_level)
 
 if not config.export_image:
-    from waveshare_epd import epd7in5_HD as epd
+    from waveshare_epd import epd2in7_V2 as epd
     from waveshare_epd import epdconfig
 else:
     epd = None
