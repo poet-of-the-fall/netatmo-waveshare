@@ -3,6 +3,7 @@ try:
     from typing import List
 except ImportError:
     from typing_extensions import Self
+    from typing_extensions import List
 from PIL import Image
 from .View import View
 
