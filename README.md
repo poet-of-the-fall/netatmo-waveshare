@@ -30,11 +30,7 @@ Install the dependecies with
 pip3 install -r requirements.txt
 ```
 
-If used on an rasperry pi directly you might also install some further required packages
-
-```
-apt install libopenjp2-7 python3-gpiozero
-```
+If used on an rasperry pi directly you might also install some further required packages. Read the [Waveshare display](https://www.waveshare.com/wiki/Main_Page#Display-e-Paper) documentation on how to run the display with python.
 
 Follow the steps in [lnetatmos usage description](https://github.com/philippelt/netatmo-api-python/blob/master/usage.md) to set up an App and your local credentials file. In short it's somethin like:
 
@@ -68,7 +64,7 @@ if not config.export_image:
     from waveshare_epd import epdconfig
 ```
 
-Refere to the [Waveshape website](https://www.waveshare.com/wiki/Main_Page#Display-e-Paper) for more insigehts.
+Refere to the [Waveshare website](https://www.waveshare.com/wiki/Main_Page#Display-e-Paper) for more insigehts.
 
 ## Config
 
