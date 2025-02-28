@@ -11,6 +11,8 @@ import logging
 import locale
 from widgets import *
 import signal
+from pathlib import Path
+from PIL import Image
 
 libdir = "./e-Paper/RaspberryPi_JetsonNano/python/lib"
 if os.path.exists(libdir):
@@ -31,7 +33,9 @@ logging.basicConfig(filename='log.log',format='%(asctime)s %(levelname)s: %(mess
 if not config.export_image:
     from waveshare_epd import epd2in7_V2 as epd
     from waveshare_epd import epdconfig
+    from gpiozero import Button
 else:
+    Button = None
     epd = None
     
 # Handle script exit
@@ -53,7 +57,7 @@ def renderToDisplay():
             logging.info("Power up display")
             epd.EPD().init()
             epd.EPD().Clear()
-            epd.EPD().display(epd.EPD().getbuffer(last_image))
+            epd.EPD().display(epd.EPD().getbuffer(last_images[current_page]))
 
         except IOError as e:
             logging.info(e)
@@ -61,9 +65,21 @@ def renderToDisplay():
         except KeyboardInterrupt:
             exit_handler()
 
-welcomeText = TextWidget("Netatmo").addTextLine("Display").setPadding(vertical = 100, horizontal = 100)
+# Button press
+def handleButtonPress(page: int):
+    current_page = page
+    renderToDisplay()
+
+if Button:
+    Button(5).when_pressed = handleButtonPress(0)
+    Button(6).when_pressed = handleButtonPress(1)
+    Button(13).when_pressed = handleButtonPress(2)
+    Button(19).when_pressed = handleButtonPress(3)
+
+welcomeText = TextWidget("Netatmo").addTextLine("Display").setPadding(vertical = 10, horizontal = 10)
 welcomeScreen = Screen().setView(welcomeText)
-last_image = welcomeScreen.render()
+last_images = [welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render()]
+current_page = 3
 renderToDisplay()
 
 lastUpdate = 0
@@ -81,9 +97,10 @@ while True:
         logging.warning('Fetching data failed! Waiting 20 Minutes.')
         warning_text = TextWidget("Aktuelle Daten konnten nicht geladen werden.").setTextAlignHorizontal(TextAlignHorizontal.CENTER).setHeight(25).invert()
         warning_message = VStack().addView(Spacer()).addView(warning_text).addView(Spacer())
-        layers = ZStack().addView(ImageWidget(last_image)).addView(warning_message)
-        screen = Screen().setView(layers)
-        last_image = screen.render()
+        for image in last_images:
+            layers = ZStack().addView(ImageWidget(image)).addView(warning_message)
+            screen = Screen().setView(layers)
+            image = screen.render()
         renderToDisplay()
         time.sleep(1200)
         continue
@@ -109,25 +126,22 @@ while True:
         elif ('CO2' in m_data_type):
             other_modules.append(weatherData.modules[module])
 
-    screen = Screen()
-    base_layout = VStack()
-    screen.setView(base_layout)
+    path = Path.cwd()
 
-    # # First row
-    # # Left part
-    # outdoor_module_widget = OutdoorModuleWidget(outdoor_module[0], main_module[0], 0.15).setWidth(335)
+    navigation = VStack().setWidth(20)
+    caravan = VStack().setShowFrame(True).addView(Spacer()).addView(ImageWidget(Image.open(path / 'images' / 'caravan.png')).setPadding(0, 2)).addView(Spacer())
+    tent = VStack().setShowFrame(True).addView(Spacer()).addView(ImageWidget(Image.open(path / 'images' / 'tent.png')).setPadding(0, 2)).addView(Spacer())
+    outside = VStack().setShowFrame(True).addView(Spacer()).addView(ImageWidget(Image.open(path / 'images' / 'palm.png')).setPadding(0, 2)).addView(Spacer())
+    all = VStack().setHeight(20).setShowFrame(True).addView(ImageWidget(Image.open(path / 'images' / 'grid.png')).setPadding(0, 2))
+    navigation.addView(caravan).addView(tent).addView(outside).addView(all)
+    content = [VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10)]
 
-    # # Middle part
-    # coords = weatherData.stations[weatherData.default_station]['place']['location']
-    # tzone = pytz.timezone(weatherData.stations[weatherData.default_station]['place']['timezone'])
-    # sun = Sun(coords[1], coords[0])
-    # rise_time = sun.get_sunrise_time().astimezone(tzone).strftime("%-H:%M")
-    # set_time = sun.get_sunset_time().astimezone(tzone).strftime("%-H:%M")
-    # logging.debug('Sunrise is %s and Sunset at %s', rise_time, set_time)
+    content[0].addView(IndoorModuleWidget(other_modules[0]))
+    content[1].addView(MainModuleWidget(main_module[0]))
+    content[2].addView(OutdoorModuleWidget(outdoor_module[0], main_module[0]))
 
-    # current_date = datetime.now().strftime('%d. %B')#.decode('utf-8')
-
-    # date_display = TextWidget(current_date).setHeight(60).setTextSize(50).setTextAlignHorizontal(TextAlignHorizontal.CENTER)
+    content[3].setGap(10).addView(OutdoorModuleWidget(outdoor_module[0], main_module[0])).addView(HStack().setGap(10).addView(IndoorModuleWidget(other_modules[0])).addView(MainModuleWidget(main_module[0])))
+    # content[3].addView(GraphWidget(outdoor_module[0], main_module[0], weatherData, 2, False))
 
     # sunrise_time = TextWidget(rise_time).setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
     # sunset_time = TextWidget(set_time).setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
@@ -151,35 +165,12 @@ while True:
     # temp_text = VStack().addView(temp_min_text).addView(temp_max_text)
     # temp_block = HStack().setGap(10).addView(Spacer()).addView(temp_value).addView(temp_text).addView(Spacer())
 
-    # date_corner = VStack().addView(date_display).addView(Spacer().setHeight(15)).addView(sun_block).addView(temp_block)
-
-    # # Right Part
-    # other_outdoor_widgets = VStack().setGap(15).setWidth(160)
-
-    # top_row = HStack().setGap(15).addView(outdoor_module_widget).addView(date_corner).addView(other_outdoor_widgets).setHeight(185)
-    # base_layout.addView(top_row)
-
-    # # Second row
-    # module_widgets_row = HStack().setHeight(115).setGap(15).setPadding(horizontal = 0, vertical = 15)
-
-    # # Main Module
-    # main_module_widget = MainModuleWidget(main_module[0], 0.25)
-    # module_widgets_row.addView(main_module_widget)
-
-    # # Additional Modules
-    # for module in other_modules:
-    #     other_module_widget = IndoorModuleWidget(module, 0.25)
-    #     module_widgets_row.addView(other_module_widget)
-
-    # base_layout.addView(module_widgets_row)
-
-    # # Third row
-    
-    # base_layout.addView(GraphWidget(outdoor_module[0], main_module[0], weatherData))
-
-    base_layout.addView(MainModuleWidget(main_module[0]))
-
-    last_image = screen.render()
+    for i in range(len(content)):
+        screen = Screen()
+        base_layout = HStack()
+        base_layout.addView(navigation).addView(content[i])
+        screen.setView(base_layout)
+        last_images[i] = screen.render()
 
     # Draw image
     renderToDisplay()
