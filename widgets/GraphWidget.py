@@ -340,7 +340,7 @@ class GraphWidget(View):
                 draw.rectangle((x1, y1, x2, y2), fill = 0)
 
             # Draw day text if needed
-            if dp.day_text:
+            if dp.day_text and self.show_days:
                 next_day = data[-1]
                 for j in range(i + 1, len(data)):
                     if data[j].day_text:
