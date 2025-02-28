@@ -127,17 +127,22 @@ class ModuleWidget(View):
 class MainModuleWidget(ModuleWidget):
     def __init__(self, module, ratio: float = 0.2):
         config = ConfigHelper()
-        header = str(module['dashboard_data']['Humidity']) + "%, " + str(module['dashboard_data']['CO2']) + "ppm"
+        header = ""
+        if module['dashboard_data']:
+            header = str(module['dashboard_data']['Humidity']) + "%, " + str(module['dashboard_data']['CO2']) + "ppm"
         body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
         footer = module['module_name']
         super().__init__(header, body, footer, ratio)
-        if module['dashboard_data']['Humidity'] >= config.highlight_humidity_max or module['dashboard_data']['CO2'] >= config.highlight_co2_max:
-            self.invert()
+        if module['dashboard_data']:
+            if module['dashboard_data']['Humidity'] >= config.highlight_humidity_max or module['dashboard_data']['CO2'] >= config.highlight_co2_max:
+                self.invert()
     
 class OutdoorModuleWidget(ModuleWidget):
     def __init__(self, module, main_module, ratio: float = 0.2):
         config = ConfigHelper()
-        header = str(module['dashboard_data']['Humidity']) + "%, " + config.format_decimal(main_module['dashboard_data']['Pressure']) + "mbar"
+        header = ""
+        if module['dashboard_data']:
+            header = str(module['dashboard_data']['Humidity']) + "%, " + config.format_decimal(main_module['dashboard_data']['Pressure']) + "mbar"
         body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
         footer = module['module_name'] + " (Stand " + datetime.fromtimestamp(main_module['last_status_store']).strftime('%H:%M') + ")"
         super().__init__(header, body, footer, ratio)
@@ -147,14 +152,17 @@ class OutdoorModuleWidget(ModuleWidget):
 class IndoorModuleWidget(ModuleWidget):
     def __init__(self, module, ratio: float = 0.2):
         config = ConfigHelper()
-        header = str(module['dashboard_data']['Humidity']) + "%, " + str(module['dashboard_data']['CO2']) + "ppm"
+        header = ""
+        if module['dashboard_data']:
+            header = str(module['dashboard_data']['Humidity']) + "%, " + str(module['dashboard_data']['CO2']) + "ppm"
         body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
         footer = module['module_name']
         super().__init__(header, body, footer, ratio)
         if module['battery_percent'] < config.highlight_battery_min:
             self.setShowFrame(show_frame = True)
-        if module['dashboard_data']['Humidity'] >= config.highlight_humidity_max or module['dashboard_data']['CO2'] >= config.highlight_co2_max:
-            self.invert()
+        if module['dashboard_data']:
+            if module['dashboard_data']['Humidity'] >= config.highlight_humidity_max or module['dashboard_data']['CO2'] >= config.highlight_co2_max:
+                self.invert()
     
 class RainModuleWidget(ModuleWidget):
     def __init__(self, module, main_module, netatmo_client: WeatherStationData, ratio: float = 0.2, unit: str = "mm", unit_ratio: float = 0.2):
@@ -187,7 +195,9 @@ class RainModuleWidget(ModuleWidget):
         except:
             logging.warning('Fetching rain data failed!')
 
-        sum_rain = module['dashboard_data']['sum_rain_24'] if 'sum_rain_24' in module['dashboard_data'] else 0
+        sum_rain = 0
+        if module['dashboard_data']:
+            sum_rain = module['dashboard_data']['sum_rain_24'] if 'sum_rain_24' in module['dashboard_data'] else 0
         header = "Regen vor " + str(hours) + time_unit
         body = config.format_decimal(sum_rain)
         footer = module['module_name']
@@ -217,8 +227,11 @@ class WindModuleWidget(ModuleWidget):
         except:
             logging.warning('Fetching wind angle data failed!')
 
-        current_angle = 360 - module['dashboard_data']['WindAngle'] if module['dashboard_data']['WindAngle'] else 0
-        current_strength = module['dashboard_data']['WindStrength'] if module['dashboard_data']['WindStrength'] else 1
+        current_angle = 0
+        current_strength = 1
+        if module['dashboard_data']:
+            current_angle = 360 - module['dashboard_data']['WindAngle'] if module['dashboard_data']['WindAngle'] else 0
+            current_strength = module['dashboard_data']['WindStrength'] if module['dashboard_data']['WindStrength'] else 1
         wind_gauge = Image.new('RGBA', (100, 100), (255, 255, 255, 0))
         draw_wind_gauge = ImageDraw.Draw(wind_gauge)
         polygon_points = [(30, 30), (50, 42), (70, 30), (50, 75), (30, 30)]
@@ -230,12 +243,15 @@ class WindModuleWidget(ModuleWidget):
 
         wind_angle_history.paste(wind_gauge, mask=wind_gauge)
 
-        header = str(module['dashboard_data']['WindStrength']) + 'km/h (max: ' + str(module['dashboard_data']['max_wind_str'] if 'max_wind_str' in module['dashboard_data'] else 0) + ')'
+        header = ""
+        if module['dashboard_data']:
+            header = str(module['dashboard_data']['WindStrength']) + 'km/h (max: ' + str(module['dashboard_data']['max_wind_str'] if 'max_wind_str' in module['dashboard_data'] else 0) + ')'
         body = ZStack().addView(ImageWidget(wind_angle_history)).setPadding(2, 2)
         footer = module['module_name']
         super().__init__(header, body, footer, ratio)
         if module['battery_percent'] < config.highlight_battery_min:
             self.setShowFrame(show_frame = True)
-        if module['dashboard_data']['WindStrength'] >= config.highlight_wind_max:
-            self.invert()
+        if module['dashboard_data']:
+            if module['dashboard_data']['WindStrength'] >= config.highlight_wind_max:
+                self.invert()
     
