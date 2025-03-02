@@ -65,6 +65,13 @@ def renderToDisplay():
         except KeyboardInterrupt:
             exit_handler()
 
+welcomeText = TextWidget("Netatmo").addTextLine("Display").setPadding(vertical = 10, horizontal = 10)
+welcomeScreen = Screen().setView(welcomeText)
+last_images = [welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render()]
+current_page: int = 3
+show_secondary: bool = False
+renderToDisplay()
+
 # Button press
 def handleButtonPress(page: int):
     if current_page == page:
@@ -77,13 +84,6 @@ if Button:
     Button(6).when_pressed = handleButtonPress(1)
     Button(13).when_pressed = handleButtonPress(2)
     Button(19).when_pressed = handleButtonPress(3)
-
-welcomeText = TextWidget("Netatmo").addTextLine("Display").setPadding(vertical = 10, horizontal = 10)
-welcomeScreen = Screen().setView(welcomeText)
-last_images = [welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render()]
-current_page: int = 3
-show_secondary: bool = False
-renderToDisplay()
 
 lastUpdate = 0
 authorization = lnetatmo.ClientAuth()
