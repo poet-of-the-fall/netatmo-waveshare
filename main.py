@@ -73,8 +73,14 @@ show_secondary: bool = False
 renderToDisplay()
 
 # Button press
-def handleButtonPress(page: int):
-    print(page)
+def handleButtonPress(btn):
+    switcher = {
+        5: 0,
+        6: 1,
+        13: 2,
+        19: 3
+    }
+    page = switcher.get(btn.pin.number, "Error")
     global current_page
     global show_secondary
     if current_page == page:
@@ -83,11 +89,10 @@ def handleButtonPress(page: int):
     renderToDisplay()
 
 if Button:
-    print("buttons")
-    Button(5).when_pressed = handleButtonPress(0)
-    Button(6).when_pressed = handleButtonPress(1)
-    Button(13).when_pressed = handleButtonPress(2)
-    Button(19).when_pressed = handleButtonPress(3)
+    Button(5).when_pressed = handleButtonPress
+    Button(6).when_pressed = handleButtonPress
+    Button(13).when_pressed = handleButtonPress
+    Button(19).when_pressed = handleButtonPress
 
 lastUpdate = 0
 authorization = lnetatmo.ClientAuth()
