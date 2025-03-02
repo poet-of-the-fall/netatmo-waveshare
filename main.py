@@ -140,12 +140,15 @@ while True:
 
     path = Path.cwd()
 
-    navigation = VStack().setWidth(20)
     caravan = VStack().setShowFrame(True).addView(Spacer()).addView(ImageWidget(Image.open(path / 'images' / 'caravan.png')).setPadding(0, 2)).addView(Spacer())
     tent = VStack().setShowFrame(True).addView(Spacer()).addView(ImageWidget(Image.open(path / 'images' / 'tent.png')).setPadding(0, 2)).addView(Spacer())
     outside = VStack().setShowFrame(True).addView(Spacer()).addView(ImageWidget(Image.open(path / 'images' / 'palm.png')).setPadding(0, 2)).addView(Spacer())
-    all = VStack().setHeight(20).setShowFrame(True).addView(ImageWidget(Image.open(path / 'images' / 'grid.png')).setPadding(0, 2))
-    navigation.addView(caravan).addView(tent).addView(outside).addView(all)
+    all = VStack().setHeight(25).setShowFrame(True).addView(ImageWidget(Image.open(path / 'images' / 'grid.png')).setPadding(0, 2))
+    navigation1 = VStack().setWidth(25).addView(caravan.invert()).addView(tent).addView(outside).addView(all)
+    navigation2 = VStack().setWidth(25).addView(caravan).addView(tent.invert()).addView(outside).addView(all)
+    navigation3 = VStack().setWidth(25).addView(caravan).addView(tent).addView(outside.invert()).addView(all)
+    navigation4 = VStack().setWidth(25).addView(caravan).addView(tent).addView(outside).addView(all.invert())
+    navigation = [navigation1, navigation2, navigation3, navigation4, navigation1, navigation2, navigation3, navigation4]
     content = [VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10)]
 
     content[0].addView(IndoorModuleWidget(other_modules[0]))
@@ -188,7 +191,7 @@ while True:
     for i in range(len(content)):
         screen = Screen()
         base_layout = HStack()
-        base_layout.addView(navigation).addView(content[i])
+        base_layout.addView(navigation[i]).addView(content[i])
         screen.setView(base_layout)
         last_images[i] = screen.render()
 
