@@ -75,6 +75,7 @@ renderToDisplay()
 # Button press
 def handleButtonPress(page: int):
     global current_page
+    global show_secondary
     if current_page == page:
         show_secondary = not show_secondary
     current_page = page + (4 if show_secondary else 0)
