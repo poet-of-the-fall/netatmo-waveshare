@@ -74,6 +74,7 @@ renderToDisplay()
 
 # Button press
 def handleButtonPress(page: int):
+    print(page)
     global current_page
     global show_secondary
     if current_page == page:
@@ -82,6 +83,7 @@ def handleButtonPress(page: int):
     renderToDisplay()
 
 if Button:
+    print("buttons")
     Button(5).when_pressed = handleButtonPress(0)
     Button(6).when_pressed = handleButtonPress(1)
     Button(13).when_pressed = handleButtonPress(2)
