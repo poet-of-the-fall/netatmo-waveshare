@@ -74,6 +74,8 @@ renderToDisplay()
 
 # Button press
 def handleButtonPress(btn):
+    global current_page
+    global show_secondary
     switcher = {
         5: 0,
         6: 1,
@@ -81,8 +83,6 @@ def handleButtonPress(btn):
         19: 3
     }
     page = switcher.get(btn.pin.number, "Error") + (4 if show_secondary else 0)
-    global current_page
-    global show_secondary
     if current_page == page:
         show_secondary = not show_secondary
     current_page = page 
