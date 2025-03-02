@@ -141,13 +141,17 @@ while True:
     path = Path.cwd()
 
     caravan = VStack().setShowFrame(True).addView(Spacer()).addView(ImageWidget(Image.open(path / 'images' / 'caravan.png')).setPadding(0, 2)).addView(Spacer())
+    caravan_inverted = VStack().invert().setShowFrame(True).addView(Spacer()).addView(ImageWidget(Image.open(path / 'images' / 'caravan.png')).setPadding(0, 2)).addView(Spacer())
     tent = VStack().setShowFrame(True).addView(Spacer()).addView(ImageWidget(Image.open(path / 'images' / 'tent.png')).setPadding(0, 2)).addView(Spacer())
+    tent_inverted = VStack().invert().setShowFrame(True).addView(Spacer()).addView(ImageWidget(Image.open(path / 'images' / 'tent.png')).setPadding(0, 2)).addView(Spacer())
     outside = VStack().setShowFrame(True).addView(Spacer()).addView(ImageWidget(Image.open(path / 'images' / 'palm.png')).setPadding(0, 2)).addView(Spacer())
+    outside_inverted = VStack().invert().setShowFrame(True).addView(Spacer()).addView(ImageWidget(Image.open(path / 'images' / 'palm.png')).setPadding(0, 2)).addView(Spacer())
     all = VStack().setHeight(25).setShowFrame(True).addView(ImageWidget(Image.open(path / 'images' / 'grid.png')).setPadding(0, 2))
-    navigation1 = VStack().setWidth(25).addView(caravan.invert()).addView(tent).addView(outside).addView(all)
-    navigation2 = VStack().setWidth(25).addView(caravan).addView(tent.invert()).addView(outside).addView(all)
-    navigation3 = VStack().setWidth(25).addView(caravan).addView(tent).addView(outside.invert()).addView(all)
-    navigation4 = VStack().setWidth(25).addView(caravan).addView(tent).addView(outside).addView(all.invert())
+    all_inverted = VStack().invert().setHeight(25).setShowFrame(True).addView(ImageWidget(Image.open(path / 'images' / 'grid.png')).setPadding(0, 2))
+    navigation1 = VStack().setWidth(25).addView(caravan_inverted).addView(tent).addView(outside).addView(all)
+    navigation2 = VStack().setWidth(25).addView(caravan).addView(tent_inverted).addView(outside).addView(all)
+    navigation3 = VStack().setWidth(25).addView(caravan).addView(tent).addView(outside_inverted).addView(all)
+    navigation4 = VStack().setWidth(25).addView(caravan).addView(tent).addView(outside).addView(all_inverted)
     navigation = [navigation1, navigation2, navigation3, navigation4, navigation1, navigation2, navigation3, navigation4]
     content = [VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10)]
 
