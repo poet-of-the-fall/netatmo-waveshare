@@ -128,9 +128,10 @@ class MainModuleWidget(ModuleWidget):
     def __init__(self, module, ratio: float = 0.2):
         config = ConfigHelper()
         header = ""
+        body = "?"
         if 'dashboard_data' in module:
             header = str(module['dashboard_data']['Humidity']) + "%, " + str(module['dashboard_data']['CO2']) + "ppm"
-        body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
+            body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
         footer = module['module_name']
         super().__init__(header, body, footer, ratio)
         if 'dashboard_data' in module:
@@ -141,9 +142,10 @@ class OutdoorModuleWidget(ModuleWidget):
     def __init__(self, module, main_module, ratio: float = 0.2):
         config = ConfigHelper()
         header = ""
+        body = "?"
         if 'dashboard_data' in module:
             header = str(module['dashboard_data']['Humidity']) + "%, " + config.format_decimal(main_module['dashboard_data']['Pressure']) + "mbar"
-        body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
+            body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
         footer = module['module_name'] + " (Stand " + datetime.fromtimestamp(main_module['last_status_store']).strftime('%H:%M') + ")"
         super().__init__(header, body, footer, ratio)
         if module['battery_percent'] < config.highlight_battery_min:
@@ -153,9 +155,10 @@ class IndoorModuleWidget(ModuleWidget):
     def __init__(self, module, ratio: float = 0.2):
         config = ConfigHelper()
         header = ""
+        body = "?"
         if 'dashboard_data' in module:
             header = str(module['dashboard_data']['Humidity']) + "%, " + str(module['dashboard_data']['CO2']) + "ppm"
-        body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
+            body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
         footer = module['module_name']
         super().__init__(header, body, footer, ratio)
         if module['battery_percent'] < config.highlight_battery_min:
