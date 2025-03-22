@@ -94,6 +94,7 @@ if Button:
     Button(13).when_pressed = handleButtonPress
     Button(19).when_pressed = handleButtonPress
 
+startup = True
 lastUpdate = 0
 authorization = lnetatmo.ClientAuth()
 
@@ -106,17 +107,23 @@ while True:
         # print(weatherData.stations)
         # print(weatherData.modules)
     except:
-        logging.warning('Fetching data failed! Waiting 20 Minutes.')
-        warning_text = TextWidget("Aktuelle Daten konnten nicht geladen werden.").setTextAlignHorizontal(TextAlignHorizontal.CENTER).setHeight(25).invert()
-        warning_message = VStack().addView(Spacer()).addView(warning_text).addView(Spacer())
-        for image in last_images:
-            layers = ZStack().addView(ImageWidget(image)).addView(warning_message)
-            screen = Screen().setView(layers)
-            image = screen.render()
-        renderToDisplay()
-        time.sleep(1200)
-        continue
-
+        if startup:
+            logging.warning('No Data at sturtup, maybe no WiFi. Waiting 10 Seconds.')
+            time.sleep(10)
+            continue
+        else: 
+            logging.warning('Fetching data failed! Waiting 20 Minutes.')
+            warning_text = TextWidget("Aktuelle Daten konnten nicht geladen werden.").setTextAlignHorizontal(TextAlignHorizontal.CENTER).setHeight(25).invert()
+            warning_message = VStack().addView(Spacer()).addView(warning_text).addView(Spacer())
+            for image in last_images:
+                layers = ZStack().addView(ImageWidget(image)).addView(warning_message)
+                screen = Screen().setView(layers)
+                image = screen.render()
+            renderToDisplay()
+            time.sleep(1200)
+            continue
+    
+    startup = False
     main_module = [weatherData.stations[weatherData.default_station]]
     outdoor_module = []
     other_modules = []
