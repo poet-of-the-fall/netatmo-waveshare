@@ -67,6 +67,7 @@ last_image = welcomeScreen.render()
 renderToDisplay()
 
 def renderError(text: str):
+    global last_image
     warning_text = TextWidget(text).setTextAlignHorizontal(TextAlignHorizontal.CENTER).setHeight(25).invert()
     warning_message = VStack().addView(Spacer()).addView(warning_text).addView(Spacer())
     layers = ZStack().addView(ImageWidget(last_image)).addView(warning_message)
