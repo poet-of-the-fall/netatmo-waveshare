@@ -72,6 +72,16 @@ current_page: int = 3
 show_secondary: bool = False
 renderToDisplay()
 
+def renderError():
+    global last_images
+    warning_text = TextWidget("Aktuelle Daten konnten nicht geladen werden.").setTextAlignHorizontal(TextAlignHorizontal.CENTER).setHeight(25).invert()
+    warning_message = VStack().addView(Spacer()).addView(warning_text).addView(Spacer())
+    for image in last_images:
+        layers = ZStack().addView(ImageWidget(image)).addView(warning_message)
+        screen = Screen().setView(layers)
+        image = screen.render()
+    renderToDisplay()
+
 # Button press
 def handleButtonPress(btn):
     global current_page
@@ -85,6 +95,7 @@ def handleButtonPress(btn):
     page = switcher.get(btn.pin.number, "Error") + (4 if show_secondary else 0)
     if current_page == page:
         show_secondary = not show_secondary
+        page = switcher.get(btn.pin.number, "Error") + (4 if show_secondary else 0)
     current_page = page 
     renderToDisplay()
 
@@ -108,18 +119,12 @@ while True:
         # print(weatherData.modules)
     except:
         if startup:
-            logging.warning('No Data at sturtup, maybe no WiFi. Waiting 10 Seconds.')
+            logging.warning('No Data at startup, maybe no WiFi. Waiting 10 Seconds.')
             time.sleep(10)
             continue
         else: 
             logging.warning('Fetching data failed! Waiting 20 Minutes.')
-            warning_text = TextWidget("Aktuelle Daten konnten nicht geladen werden.").setTextAlignHorizontal(TextAlignHorizontal.CENTER).setHeight(25).invert()
-            warning_message = VStack().addView(Spacer()).addView(warning_text).addView(Spacer())
-            for image in last_images:
-                layers = ZStack().addView(ImageWidget(image)).addView(warning_message)
-                screen = Screen().setView(layers)
-                image = screen.render()
-            renderToDisplay()
+            renderError()
             time.sleep(1200)
             continue
     
@@ -166,12 +171,15 @@ while True:
     content[1].addView(MainModuleWidget(main_module[0]))
     content[2].addView(OutdoorModuleWidget(outdoor_module[0], main_module[0]))
 
-    min_temp = outdoor_module[0]['dashboard_data']['Temperature']
-    if 'min_temp' in outdoor_module[0]['dashboard_data']: # might be empty right after midnight
-        min_temp = outdoor_module[0]['dashboard_data']['min_temp']
-    max_temp = outdoor_module[0]['dashboard_data']['Temperature']
-    if 'max_temp' in outdoor_module[0]['dashboard_data']: 
-        max_temp = outdoor_module[0]['dashboard_data']['max_temp']
+    min_temp = 0
+    max_temp = 0
+    if 'dashboard_data' in outdoor_module[0]:
+        min_temp = outdoor_module[0]['dashboard_data']['Temperature']
+        if 'min_temp' in outdoor_module[0]['dashboard_data']: # might be empty right after midnight
+            min_temp = outdoor_module[0]['dashboard_data']['min_temp']
+        max_temp = outdoor_module[0]['dashboard_data']['Temperature']
+        if 'max_temp' in outdoor_module[0]['dashboard_data']: 
+            max_temp = outdoor_module[0]['dashboard_data']['max_temp']
     temp_min_value = TextWidget(config.format_decimal(min_temp) + u'\N{DEGREE SIGN}').setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
     temp_max_value = TextWidget(config.format_decimal(max_temp) + u'\N{DEGREE SIGN}').setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
     temp_value = VStack().addView(temp_min_value).addView(temp_max_value)
@@ -204,7 +212,13 @@ while True:
         base_layout = HStack()
         base_layout.addView(navigation[i]).addView(content[i])
         screen.setView(base_layout)
-        last_images[i] = screen.render()
+        try:
+            last_images[i] = screen.render()
+        except:
+            logging.warning('Screen could not render.')
+            renderError()
+            time.sleep(1200)
+            continue
 
     # Draw image
     renderToDisplay()
