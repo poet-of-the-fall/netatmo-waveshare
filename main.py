@@ -66,6 +66,14 @@ welcomeScreen = Screen().setView(welcomeText)
 last_image = welcomeScreen.render()
 renderToDisplay()
 
+def renderError(text: str):
+    warning_text = TextWidget(text).setTextAlignHorizontal(TextAlignHorizontal.CENTER).setHeight(25).invert()
+    warning_message = VStack().addView(Spacer()).addView(warning_text).addView(Spacer())
+    layers = ZStack().addView(ImageWidget(last_image)).addView(warning_message)
+    screen = Screen().setView(layers)
+    last_image = screen.render()
+    renderToDisplay()
+
 startup = True
 lastUpdate = 0
 authorization = lnetatmo.ClientAuth()
@@ -85,12 +93,7 @@ while True:
             continue
         else: 
             logging.warning('Fetching data failed! Waiting 20 Minutes.')
-            warning_text = TextWidget("Aktuelle Daten konnten nicht geladen werden.").setTextAlignHorizontal(TextAlignHorizontal.CENTER).setHeight(25).invert()
-            warning_message = VStack().addView(Spacer()).addView(warning_text).addView(Spacer())
-            layers = ZStack().addView(ImageWidget(last_image)).addView(warning_message)
-            screen = Screen().setView(layers)
-            last_image = screen.render()
-            renderToDisplay()
+            renderError("Aktuelle Daten konnten nicht geladen werden.")
             time.sleep(1200)
             continue
 
@@ -102,6 +105,12 @@ while True:
     rain_module = []
     wind_module = []
     other_modules = []
+
+    if main_module[0]["reachable"] == False:
+        logging.warning('Station not reachable! Waiting 20 Minutes.')
+        renderError("Station nicht verbunden.")
+        time.sleep(1200)
+        continue
 
     updateTimeUTC = main_module[0]["last_status_store"]
     updateTime = datetime.fromtimestamp(updateTimeUTC) 
