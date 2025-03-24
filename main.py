@@ -72,9 +72,9 @@ current_page: int = 3
 show_secondary: bool = False
 renderToDisplay()
 
-def renderError():
+def renderError(text: str):
     global last_images
-    warning_text = TextWidget("Aktuelle Daten konnten nicht geladen werden.").setTextAlignHorizontal(TextAlignHorizontal.CENTER).setHeight(25).invert()
+    warning_text = TextWidget(text).setTextAlignHorizontal(TextAlignHorizontal.CENTER).setHeight(25).invert()
     warning_message = VStack().addView(Spacer()).addView(warning_text).addView(Spacer())
     for image in last_images:
         layers = ZStack().addView(ImageWidget(image)).addView(warning_message)
@@ -124,7 +124,7 @@ while True:
             continue
         else: 
             logging.warning('Fetching data failed! Waiting 20 Minutes.')
-            renderError()
+            renderError("Aktuelle Daten konnten nicht geladen werden.")
             time.sleep(1200)
             continue
     
@@ -132,6 +132,12 @@ while True:
     main_module = [weatherData.stations[weatherData.default_station]]
     outdoor_module = []
     other_modules = []
+
+    if main_module[0]["reachable"] == False:
+        logging.warning('Station not reachable! Waiting 20 Minutes.')
+        renderError("Station nicht verbunden.")
+        time.sleep(1200)
+        continue
 
     updateTimeUTC = main_module[0]["last_status_store"]
     updateTime = datetime.fromtimestamp(updateTimeUTC) 
@@ -216,7 +222,7 @@ while True:
             last_images[i] = screen.render()
         except:
             logging.warning('Screen could not render.')
-            renderError()
+            renderError("Fehler")
             time.sleep(1200)
             continue
 
