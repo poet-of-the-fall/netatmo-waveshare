@@ -78,11 +78,16 @@ class TextWidget(View):
         for line in self.text:
             size = 5
             while True:
+                if line == "":
+                    size = 10000
+                    break
                 font = ImageFont.truetype(fontdir, size)
                 length = draw.textlength(line, font)
                 if length > (box_width - 2 * self.padding_horizontal):
                     break
                 size += 1
+                if size > 10000:
+                    break
             sizes.append(size - 1)
 
         # find right text size vertical
@@ -96,6 +101,8 @@ class TextWidget(View):
             if height > (box_height - 2 * self.padding_vertical):
                 break
             size += 1
+            if size > 10000:
+                break
         sizes.append(size - 1)
 
         return min(sizes)
