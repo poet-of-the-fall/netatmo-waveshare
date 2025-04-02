@@ -214,8 +214,14 @@ while True:
     # Third row
     
     base_layout.addView(GraphWidget(outdoor_module[0], main_module[0], weatherData, rain_module=(rain_module[0] if len(rain_module) > 0 else None)))
-    last_image = screen.render()
-
+    try:
+        last_image = screen.render()
+    except:
+        logging.warning('Screen could not render.')
+        renderError("Fehler")
+        time.sleep(1200)
+        continue
+    
     # Draw image
     renderToDisplay()
 
