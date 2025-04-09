@@ -134,7 +134,7 @@ class MainModuleWidget(ModuleWidget):
             body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
         footer = module['module_name']
         super().__init__(header, body, footer, ratio)
-        if 'dashboard_data' in module:
+        if 'dashboard_data' in module and 'Humidity' in module['dashboard_data']:
             if module['dashboard_data']['Humidity'] >= config.highlight_humidity_max or module['dashboard_data']['CO2'] >= config.highlight_co2_max:
                 self.invert()
     
@@ -163,7 +163,7 @@ class IndoorModuleWidget(ModuleWidget):
         super().__init__(header, body, footer, ratio)
         if module['battery_percent'] < config.highlight_battery_min:
             self.setShowFrame(show_frame = True)
-        if 'dashboard_data' in module:
+        if 'dashboard_data' in module and 'Humidity' in module['dashboard_data']:
             if module['dashboard_data']['Humidity'] >= config.highlight_humidity_max or module['dashboard_data']['CO2'] >= config.highlight_co2_max:
                 self.invert()
     
@@ -233,8 +233,8 @@ class WindModuleWidget(ModuleWidget):
         current_angle = 0
         current_strength = 1
         if 'dashboard_data' in module:
-            current_angle = 360 - module['dashboard_data']['WindAngle'] if module['dashboard_data']['WindAngle'] else 0
-            current_strength = module['dashboard_data']['WindStrength'] if module['dashboard_data']['WindStrength'] else 1
+            current_angle = 360 - module['dashboard_data']['WindAngle'] if 'WindAngle' in module['dashboard_data'] else 0
+            current_strength = module['dashboard_data']['WindStrength'] if 'WindStrength' in module['dashboard_data'] else 1
         wind_gauge = Image.new('RGBA', (100, 100), (255, 255, 255, 0))
         draw_wind_gauge = ImageDraw.Draw(wind_gauge)
         polygon_points = [(30, 30), (50, 42), (70, 30), (50, 75), (30, 30)]
@@ -254,7 +254,7 @@ class WindModuleWidget(ModuleWidget):
         super().__init__(header, body, footer, ratio)
         if module['battery_percent'] < config.highlight_battery_min:
             self.setShowFrame(show_frame = True)
-        if 'dashboard_data' in module:
+        if 'dashboard_data' in module and 'WindStrength' in module['dashboard_data']:
             if module['dashboard_data']['WindStrength'] >= config.highlight_wind_max:
                 self.invert()
     
