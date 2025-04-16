@@ -85,6 +85,7 @@ class ModuleWidget(View):
             body_value.setTextSize(text_size)
             font = ImageFont.truetype(fontdir, text_size)
             l, t, r, b = draw.textbbox((0,0), self.body, font)
+            del font
             unit_width = round((self.width - 2 * self.padding_horizontal) * self.unit_ratio)
             width = r + unit_width
             body_unit = TextWidget(self.unit).setPadding(vertical = self.height * (1 - self.ratio) * 0.1, horizontal = 0).setTextAlignVertical(TextAlignVertical.BOTTOM).setWidth(unit_width)

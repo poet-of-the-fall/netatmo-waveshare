@@ -81,6 +81,7 @@ class TextWidget(View):
                     break
                 font = ImageFont.truetype(fontdir, size)
                 length = draw.textlength(line, font)
+                del font
                 if length > (box_width - 2 * self.padding_horizontal):
                     break
                 size += 1
@@ -96,6 +97,7 @@ class TextWidget(View):
             for line in self.text:
                 l, t, r, b = draw.textbbox((0,0), line, font)
                 height += b
+            del font
             if height > (box_height - 2 * self.padding_vertical):
                 break
             size += 1
@@ -142,5 +144,6 @@ class TextWidget(View):
             draw.text((left, top), line, font = font, fill = (0, 0, 0, 255))
             top += b
 
+        del font
         super().render()
         return self.image
