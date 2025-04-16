@@ -366,5 +366,8 @@ class GraphWidget(View):
                     y_position = self.height - self.padding_vertical - b
                     draw.text((dp.x_position + offset, y_position), short_text, font = day_font, fill = 0)
 
+        del indicator_font
+        del day_font
+        
         super().render()
         return self.image
