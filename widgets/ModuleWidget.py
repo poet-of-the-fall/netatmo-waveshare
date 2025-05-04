@@ -130,7 +130,8 @@ class MainModuleWidget(ModuleWidget):
         config = ConfigHelper()
         header = ""
         body = "?"
-        if 'dashboard_data' in module and 'Humidity' in module['dashboard_data'] and 'CO2' in module['dashboard_data']:
+        # if 'dashboard_data' in module and 'Humidity' in module['dashboard_data'] and 'CO2' in module['dashboard_data']:
+        if 'dashboard_data' in module:
             header = str(module['dashboard_data']['Humidity']) + "%, " + str(module['dashboard_data']['CO2']) + "ppm"
         if 'dashboard_data' in module and 'Temperature' in module['dashboard_data']:
             body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
