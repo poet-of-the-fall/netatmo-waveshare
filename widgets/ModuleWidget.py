@@ -145,7 +145,7 @@ class OutdoorModuleWidget(ModuleWidget):
         config = ConfigHelper()
         header = ""
         body = "?"
-        if 'dashboard_data' in module and 'Humidity' in module['dashboard_data'] and 'Pressure' in module['dashboard_data']:
+        if 'dashboard_data' in module and 'Humidity' in module['dashboard_data'] and 'Pressure' in main_module['dashboard_data']:
             header = str(module['dashboard_data']['Humidity']) + "%, " + config.format_decimal(main_module['dashboard_data']['Pressure']) + "mbar"
         if 'dashboard_data' in module and 'Temperature' in module['dashboard_data']:
             body = config.format_decimal(module['dashboard_data']['Temperature']) + u'\N{DEGREE SIGN}'
