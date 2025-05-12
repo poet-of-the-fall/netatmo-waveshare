@@ -65,6 +65,7 @@ welcomeText = TextWidget("Netatmo").addTextLine("Display").setPadding(vertical =
 welcomeScreen = Screen().setView(welcomeText)
 last_image = welcomeScreen.render()
 renderToDisplay()
+del welcomeScreen
 
 def renderError(text: str):
     global last_image
@@ -74,6 +75,7 @@ def renderError(text: str):
     screen = Screen().setView(layers)
     last_image = screen.render()
     renderToDisplay()
+    del screen
 
 startup = True
 lastUpdate = 0
@@ -224,6 +226,7 @@ while True:
     
     # Draw image
     renderToDisplay()
+    del screen
 
     # Wait time for next update
     delta = (datetime.now() - updateTime).total_seconds()
