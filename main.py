@@ -71,6 +71,7 @@ last_images = [welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.ren
 current_page: int = 3
 show_secondary: bool = False
 renderToDisplay()
+del welcomeScreen
 
 def renderError(text: str):
     global last_images
@@ -81,6 +82,7 @@ def renderError(text: str):
         screen = Screen().setView(layers)
         image = screen.render()
     renderToDisplay()
+    del screen
 
 # Button press
 def handleButtonPress(btn):
@@ -228,6 +230,7 @@ while True:
 
     # Draw image
     renderToDisplay()
+    del screen
 
     # Wait time for next update
     delta = (datetime.now() - updateTime).total_seconds()
