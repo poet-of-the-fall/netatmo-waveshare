@@ -111,6 +111,7 @@ startup = True
 lastUpdate = 0
 authorization = lnetatmo.ClientAuth()
 
+path = Path.cwd()
 caravan = VStack().setShowFrame(True).addView(Spacer()).addView(ImageWidget(Image.open(path / 'images' / 'caravan.png'))).addView(Spacer())
 caravan_inverted = VStack().invert().setShowFrame(True).addView(Spacer()).addView(ImageWidget(Image.open(path / 'images' / 'caravan.png'))).addView(Spacer())
 tent = VStack().setShowFrame(True).addView(Spacer()).addView(ImageWidget(Image.open(path / 'images' / 'tent.png'))).addView(Spacer())
@@ -171,8 +172,6 @@ while True:
             outdoor_module.append(weatherData.modules[module])
         elif ('CO2' in m_data_type):
             other_modules.append(weatherData.modules[module])
-
-    path = Path.cwd()
 
     content = [VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10), VStack().setPadding(10, 10)]
     content[0].addView(IndoorModuleWidget(other_modules[0]))
