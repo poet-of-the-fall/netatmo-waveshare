@@ -89,13 +89,14 @@ while True:
         # print(weatherData.default_station)
         # print(weatherData.stations)
         # print(weatherData.modules)
-    except:
+    except Exception as e:
         if startup:
             logging.warning('No Data at sturtup, maybe no WiFi. Waiting 10 Seconds.')
             time.sleep(10)
             continue
         else: 
             logging.warning('Fetching data failed! Waiting 20 Minutes.')
+            logging.warning(e)
             renderError("Aktuelle Daten konnten nicht geladen werden.")
             time.sleep(1200)
             continue
