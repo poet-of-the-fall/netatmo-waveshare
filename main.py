@@ -165,12 +165,16 @@ while True:
     sun_text = VStack().setLayoutWeight(3).addView(sunrise_text).addView(sunset_text)
     sun_block = HStack().setGap(10).addView(Spacer()).addView(sun_value).addView(sun_text).addView(Spacer())
 
-    min_temp = outdoor_module[0]['dashboard_data']['Temperature']
-    if 'min_temp' in outdoor_module[0]['dashboard_data']: # might be empty right after midnight
-        min_temp = outdoor_module[0]['dashboard_data']['min_temp']
-    max_temp = outdoor_module[0]['dashboard_data']['Temperature']
-    if 'max_temp' in outdoor_module[0]['dashboard_data']: 
-        max_temp = outdoor_module[0]['dashboard_data']['max_temp']
+
+    min_temp = "?"
+    max_temp = "?"
+    if outdoor_module[0]:
+        min_temp = outdoor_module[0]['dashboard_data']['Temperature']
+        if 'min_temp' in outdoor_module[0]['dashboard_data']: # might be empty right after midnight
+            min_temp = outdoor_module[0]['dashboard_data']['min_temp']
+        max_temp = outdoor_module[0]['dashboard_data']['Temperature']
+        if 'max_temp' in outdoor_module[0]['dashboard_data']: 
+            max_temp = outdoor_module[0]['dashboard_data']['max_temp']
     temp_min_value = TextWidget(config.format_decimal(min_temp) + u'\N{DEGREE SIGN}').setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
     temp_max_value = TextWidget(config.format_decimal(max_temp) + u'\N{DEGREE SIGN}').setTextSize(18).setTextAlignHorizontal(TextAlignHorizontal.RIGHT)
     temp_value = VStack().addView(temp_min_value).addView(temp_max_value)
