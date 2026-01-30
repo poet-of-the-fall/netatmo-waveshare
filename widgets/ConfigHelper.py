@@ -36,7 +36,7 @@ class ConfigHelper(metaclass=Singleton):
         # Load values
         self.decimal_marker = config.get('general', 'decimal_marker', fallback=",")
         self.log_level = config.get('general','log_level', fallback="none")
-        self.refresh_interval_s = config.get('general','refresh_interval_s', fallback=600)
+        self.refresh_interval_s = config.getint('general','refresh_interval_s', fallback=600)
         self.export_image = config.getboolean('general','export_image', fallback=False)
         self.image_width = config.getint('general', 'image_width', fallback=880)
         self.image_height = config.getint('general', 'image_height', fallback=528)
