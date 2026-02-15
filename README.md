@@ -28,6 +28,8 @@ Install the dependecies with
 
 ```
 pip3 install -r requirements.txt
+apt install libjpeg-dev zlib1g-dev libfreetype6-dev
+pip3 install --upgrade Pillow --global-option="build_ext" --global-option="--enable-freetype"
 ```
 
 If used on an rasperry pi directly you might also install some further required packages. Read the [Waveshare display](https://www.waveshare.com/wiki/Main_Page#Display-e-Paper) documentation on how to run the display with python.
