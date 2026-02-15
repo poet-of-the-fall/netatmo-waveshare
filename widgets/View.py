@@ -5,16 +5,6 @@ except ImportError:
 from PIL import Image, ImageOps, ImageDraw
 
 class View(object):
-    width: int
-    height: int
-    layoutWeight: int
-    image: Image
-    view: Self
-    padding_vertical: int
-    padding_horizontal: int
-    inverted: bool
-    show_frame: bool
-
     def __init__(self):
         self.width = 0
         self.height = 0

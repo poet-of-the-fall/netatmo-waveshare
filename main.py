@@ -25,6 +25,7 @@ locale.setlocale(locale.LC_ALL, 'de_DE.UTF-8')
 
 # Get config
 config = ConfigHelper()
+refresh_interval = config.refresh_interval_s
 
 # Configure logging
 numeric_level = getattr(logging, config.log_level, None)
@@ -134,13 +135,14 @@ while True:
         # print(weatherData.default_station)
         # print(weatherData.stations)
         # print(weatherData.modules)
-    except:
+    except Exception as e:
         if startup:
             logging.warning('No Data at startup, maybe no WiFi. Waiting 10 Seconds.')
             time.sleep(10)
             continue
         else: 
             logging.warning('Fetching data failed! Waiting 20 Minutes.')
+            logging.warning(e)
             renderError("Aktuelle Daten konnten nicht geladen werden.")
             time.sleep(1200)
             continue
@@ -233,7 +235,7 @@ while True:
 
     # Wait time for next update
     delta = (datetime.now() - updateTime).total_seconds()
-    logging.info('Update time ago: %s, need to wait: %s', delta, 600 - delta) 
-    time.sleep((600 - delta) if (delta < 600) else 10)
+    logging.info('Update time ago: %s, need to wait: %s', delta, refresh_interval - delta) 
+    time.sleep((refresh_interval - delta) if (delta < refresh_interval) else 10)
 
 exit()

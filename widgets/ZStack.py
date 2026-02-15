@@ -8,8 +8,6 @@ from PIL import Image
 from .View import View
 
 class ZStack(View):
-    view: List[View]
-
     def __init__(self):
         super().__init__()
         self.view = []

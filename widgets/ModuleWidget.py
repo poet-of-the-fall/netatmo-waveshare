@@ -17,19 +17,13 @@ from lnetatmo import WeatherStationData
 import logging
 
 class ModuleWidget(View):
-    header: str
-    body: None # should be: str | View
-    footer: str
-    ratio: float
-    unit: str = None
-    unit_ratio: float
-    
     def __init__(self, header: str = "", body: str = "", footer: str = "", ratio: float = 0.2, unit: str = None, unit_ratio: float = 0.2):
         super().__init__()
         self.setHeader(text = header)
         self.setBody(text = body)
         self.setFooter(text = footer)
         self.setRatio(ratio = ratio)
+        self.unit = None
         if unit:
             self.setUnit(text = unit)
         self.setUnitRatio(ratio = unit_ratio)

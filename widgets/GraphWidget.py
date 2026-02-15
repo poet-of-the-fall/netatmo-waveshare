@@ -28,22 +28,6 @@ class DataPoint(object):
         return f"timestamp: {self.timestamp}, x_position: {self.x_position}, temp_value: {self.temp_value}, rain_value: {self.rain_value}, day_text: {self.day_text}, day_values: {self.day_values}, is_midnight: {self.is_midnight}, show_tick: {self.show_tick}, is_latest: {self.is_latest}"
     
 class GraphWidget(View):
-    netatmo_client: WeatherStationData
-    density: int
-    show_days: bool
-    day_height: int
-    temp_min: int
-    temp_max: int
-    temp_steps: int
-    temp_size: int
-    indicator_size: int
-    line_width: int
-    current_value_radius: int
-    hour_tick_interval: int
-    rain_module: bool
-    rain_max: int
-    rain_steps: int
-
     def __init__(self, temperature_module, main_module, netatmo_client: WeatherStationData, density: int = 4, show_days: bool = True, day_height: int = 20, temp_min: int = -10, temp_max: int = 40, temp_steps: int = 10, temp_size: int = 10, indicator_size: int = 3, line_width: int = 1, current_value_radius: int = 2, hour_tick_interval: int = 6, rain_module = None, rain_max: int = 10, rain_steps: int = 10):
         super().__init__()
         self.temperature_module = temperature_module
