@@ -76,7 +76,7 @@ class TextWidget(View):
             size = 5
             while True:
                 if line == "":
-                    size = 10000
+                    size = 100
                     break
                 font = TextWidget._font_sizes[size]
                 length = draw.textlength(line, font)
@@ -84,7 +84,7 @@ class TextWidget(View):
                 if length > (box_width - 2 * self.padding_horizontal):
                     break
                 size += 1
-                if size > 10000:
+                if size > 100:
                     break
             sizes.append(size - 1)
 
@@ -100,7 +100,7 @@ class TextWidget(View):
             if height > (box_height - 2 * self.padding_vertical):
                 break
             size += 1
-            if size > 10000:
+            if size > 100:
                 break
         sizes.append(size - 1)
 
