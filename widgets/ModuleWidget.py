@@ -23,6 +23,7 @@ class ModuleWidget(View):
         self.setBody(text = body)
         self.setFooter(text = footer)
         self.setRatio(ratio = ratio)
+        self.unit = None
         if unit:
             self.setUnit(text = unit)
         self.setUnitRatio(ratio = unit_ratio)
