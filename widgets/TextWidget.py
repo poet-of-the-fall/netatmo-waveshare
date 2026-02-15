@@ -18,7 +18,7 @@ class TextAlignVertical(enum.Enum):
     BOTTOM = 3
     
 class TextWidget(View):
-    _font_sizes = [ImageFont.truetype(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Font.ttc'), x, layout_engine=ImageFont.Layout.BASIC) if x > 0 else 0 for x in range(1001)]
+    _font_sizes = []
 
     def __init__(self, text: str, text_align_horizontal: TextAlignHorizontal = TextAlignHorizontal.CENTER, text_align_vertical: TextAlignVertical = TextAlignVertical.CENTER, text_size: int = None, max_text_size: int = None):
         super().__init__()
@@ -29,6 +29,9 @@ class TextWidget(View):
         self.max_text_size = None
         if max_text_size:
             self.setMaxTextSize(size = max_text_size)
+        if len(TextWidget._font_sizes) == 0:
+            fontpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Font.ttc')
+            TextWidget._font_sizes = [ImageFont.truetype(fontpath, x) if x > 0 else 0 for x in range(1001)]
     
     def setText(self, text: str) -> Self:
         self.text = [text]
