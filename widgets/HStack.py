@@ -6,9 +6,6 @@ from PIL import Image
 from .View import View
 
 class HStack(View):
-    view: list[View]
-    gap: int
-
     def __init__(self): 
         super().__init__()
         self.view = []

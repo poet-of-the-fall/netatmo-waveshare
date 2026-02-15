@@ -18,12 +18,8 @@ class TextAlignVertical(enum.Enum):
     BOTTOM = 3
     
 class TextWidget(View):
-    text: list[str]
-    text_align_horizontal: TextAlignHorizontal
-    text_align_vertical: TextAlignVertical
-    text_size: int
-    max_text_size: int = None
-    
+    _font_sizes = [ImageFont.truetype(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Font.ttc'), x) if x > 0 else 0 for x in range(10001)]
+
     def __init__(self, text: str, text_align_horizontal: TextAlignHorizontal = TextAlignHorizontal.CENTER, text_align_vertical: TextAlignVertical = TextAlignVertical.CENTER, text_size: int = None, max_text_size: int = None):
         super().__init__()
         self.setText(text = text)
@@ -64,7 +60,6 @@ class TextWidget(View):
             box_width = different_width
         if different_height:
             box_height = different_height
-        fontdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Font.ttc')
         image = Image.new('RGBA', (box_width, box_height), (255, 255, 255, 0))
         draw = ImageDraw.Draw(image)
 
@@ -79,7 +74,7 @@ class TextWidget(View):
                 if line == "":
                     size = 10000
                     break
-                font = ImageFont.truetype(fontdir, size)
+                font = self._font_sizes[size]
                 length = draw.textlength(line, font)
                 del font
                 if length > (box_width - 2 * self.padding_horizontal):
@@ -92,7 +87,7 @@ class TextWidget(View):
         # find right text size vertical
         size = 5
         while True:
-            font = ImageFont.truetype(fontdir, size)
+            font = self._font_sizes[size]
             height = 0
             for line in self.text:
                 l, t, r, b = draw.textbbox((0,0), line, font)
@@ -108,7 +103,6 @@ class TextWidget(View):
         return min(sizes)
 
     def render(self) -> Image:
-        fontdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Font.ttc')
         self.image = Image.new('RGBA', (self.width, self.height), (255, 255, 255, 0))
         draw = ImageDraw.Draw(self.image)
 
@@ -116,7 +110,7 @@ class TextWidget(View):
             self.text_size = self.calculateTextSize()
 
         # set font
-        font = ImageFont.truetype(fontdir, self.text_size)
+        font = self._font_sizes[self.text_size]
 
         # get vertical position
         height = 0

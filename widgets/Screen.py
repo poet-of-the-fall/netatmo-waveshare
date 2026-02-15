@@ -8,8 +8,6 @@ from .ConfigHelper import ConfigHelper
 from datetime import datetime, timezone
 
 class Screen(View):
-    save_image: bool
-
     def __init__(self, width: int = None, height: int = None):
         super().__init__()
         config = ConfigHelper()
