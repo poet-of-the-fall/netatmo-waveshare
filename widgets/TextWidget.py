@@ -31,8 +31,7 @@ class TextWidget(View):
             self.setMaxTextSize(size = max_text_size)
         if len(TextWidget._font_sizes) == 0:
             fontpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Font.ttc')
-            print(fontpath)
-            TextWidget._font_sizes = [ImageFont.truetype(fontpath, x) if x > 0 else 0 for x in range(10001)]
+            TextWidget._font_sizes = [ImageFont.truetype(fontpath, x) if x > 0 else 0 for x in range(101)]
     
     def setText(self, text: str) -> Self:
         self.text = [text]
