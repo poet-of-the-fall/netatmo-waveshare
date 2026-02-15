@@ -18,6 +18,7 @@ class TextAlignVertical(enum.Enum):
     BOTTOM = 3
     
 class TextWidget(View):
+    FONT_SIZE_LIMIT = 500
     _font_sizes = []
 
     def __init__(self, text: str, text_align_horizontal: TextAlignHorizontal = TextAlignHorizontal.CENTER, text_align_vertical: TextAlignVertical = TextAlignVertical.CENTER, text_size: int = None, max_text_size: int = None):
@@ -31,7 +32,7 @@ class TextWidget(View):
             self.setMaxTextSize(size = max_text_size)
         if len(TextWidget._font_sizes) == 0:
             fontpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Font.ttc')
-            TextWidget._font_sizes = [ImageFont.truetype(fontpath, x) if x > 0 else 0 for x in range(101)]
+            TextWidget._font_sizes = [ImageFont.truetype(fontpath, x) if x > 0 else 0 for x in range(TextWidget.FONT_SIZE_LIMIT + 1)]
     
     def setText(self, text: str) -> Self:
         self.text = [text]
@@ -76,7 +77,7 @@ class TextWidget(View):
             size = 5
             while True:
                 if line == "":
-                    size = 100
+                    size = TextWidget.FONT_SIZE_LIMIT
                     break
                 font = TextWidget._font_sizes[size]
                 length = draw.textlength(line, font)
@@ -84,7 +85,7 @@ class TextWidget(View):
                 if length > (box_width - 2 * self.padding_horizontal):
                     break
                 size += 1
-                if size > 100:
+                if size > TextWidget.FONT_SIZE_LIMIT:
                     break
             sizes.append(size - 1)
 
@@ -100,7 +101,7 @@ class TextWidget(View):
             if height > (box_height - 2 * self.padding_vertical):
                 break
             size += 1
-            if size > 100:
+            if size > TextWidget.FONT_SIZE_LIMIT:
                 break
         sizes.append(size - 1)
 
