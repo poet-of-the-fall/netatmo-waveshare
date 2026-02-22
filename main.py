@@ -51,10 +51,20 @@ signal.signal(signal.SIGABRT, exit_handler)
 def renderToDisplay():
     if epd:
         try:
-            logging.info("Power up display")
-            epd.EPD().init()
             epd.EPD().Clear()
             epd.EPD().display(epd.EPD().getbuffer(last_image))
+
+        except IOError as e:
+            logging.info(e)
+
+        except KeyboardInterrupt:
+            exit_handler()
+
+def initDisplay():
+    if epd:
+        try:
+            logging.info("Power up display")
+            epd.EPD().init()
 
         except IOError as e:
             logging.info(e)
@@ -65,6 +75,7 @@ def renderToDisplay():
 welcomeText = TextWidget("Netatmo").addTextLine("Display").setPadding(vertical = 100, horizontal = 100)
 welcomeScreen = Screen().setView(welcomeText)
 last_image = welcomeScreen.render()
+initDisplay()
 renderToDisplay()
 del welcomeScreen
 
