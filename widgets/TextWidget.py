@@ -18,9 +18,6 @@ class TextAlignVertical(enum.Enum):
     BOTTOM = 3
     
 class TextWidget(View):
-    FONT_SIZE_LIMIT = 500
-    _font_sizes = []
-
     def __init__(self, text: str, text_align_horizontal: TextAlignHorizontal = TextAlignHorizontal.CENTER, text_align_vertical: TextAlignVertical = TextAlignVertical.CENTER, text_size: int = None, max_text_size: int = None):
         super().__init__()
         self.setText(text = text)
@@ -30,9 +27,6 @@ class TextWidget(View):
         self.max_text_size = None
         if max_text_size:
             self.setMaxTextSize(size = max_text_size)
-        if len(TextWidget._font_sizes) == 0:
-            fontpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Font.ttc')
-            TextWidget._font_sizes = [ImageFont.truetype(fontpath, x) if x > 0 else 0 for x in range(TextWidget.FONT_SIZE_LIMIT + 1)]
     
     def setText(self, text: str) -> Self:
         self.text = [text]
@@ -66,6 +60,7 @@ class TextWidget(View):
         if different_height:
             box_height = different_height
         image = Image.new('RGBA', (box_width, box_height), (255, 255, 255, 0))
+        fontdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Font.ttc')
         draw = ImageDraw.Draw(image)
 
         # find right text size horizontal
@@ -77,22 +72,22 @@ class TextWidget(View):
             size = 5
             while True:
                 if line == "":
-                    size = TextWidget.FONT_SIZE_LIMIT
+                    size = 10000
                     break
-                font = TextWidget._font_sizes[size]
+                font = ImageFont.truetype(fontdir, size)
                 length = draw.textlength(line, font)
                 del font
                 if length > (box_width - 2 * self.padding_horizontal):
                     break
                 size += 1
-                if size > TextWidget.FONT_SIZE_LIMIT:
+                if size > 10000:
                     break
             sizes.append(size - 1)
 
         # find right text size vertical
         size = 5
         while True:
-            font = TextWidget._font_sizes[size]
+            font = ImageFont.truetype(fontdir, size)
             height = 0
             for line in self.text:
                 l, t, r, b = draw.textbbox((0,0), line, font)
@@ -101,7 +96,7 @@ class TextWidget(View):
             if height > (box_height - 2 * self.padding_vertical):
                 break
             size += 1
-            if size > TextWidget.FONT_SIZE_LIMIT:
+            if size > 10000:
                 break
         sizes.append(size - 1)
 
@@ -109,13 +104,14 @@ class TextWidget(View):
 
     def render(self) -> Image:
         self.image = Image.new('RGBA', (self.width, self.height), (255, 255, 255, 0))
+        fontdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Font.ttc')
         draw = ImageDraw.Draw(self.image)
 
         if self.text_size == None:
             self.text_size = self.calculateTextSize()
 
         # set font
-        font = TextWidget._font_sizes[self.text_size]
+        font = ImageFont.truetype(fontdir, self.text_size)
 
         # get vertical position
         height = 0
