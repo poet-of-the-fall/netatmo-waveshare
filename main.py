@@ -55,10 +55,20 @@ signal.signal(signal.SIGABRT, exit_handler)
 def renderToDisplay():
     if epd:
         try:
-            logging.info("Power up display")
-            epd.EPD().init()
             epd.EPD().Clear()
             epd.EPD().display(epd.EPD().getbuffer(last_images[current_page]))
+
+        except IOError as e:
+            logging.info(e)
+
+        except KeyboardInterrupt:
+            exit_handler()
+
+def initDisplay():
+    if epd:
+        try:
+            logging.info("Power up display")
+            epd.EPD().init()
 
         except IOError as e:
             logging.info(e)
@@ -71,6 +81,7 @@ welcomeScreen = Screen().setView(welcomeText)
 last_images = [welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render(), welcomeScreen.render()]
 current_page: int = 3
 show_secondary: bool = False
+initDisplay()
 renderToDisplay()
 del welcomeScreen
 
