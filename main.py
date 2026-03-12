@@ -180,7 +180,7 @@ while True:
 
     min_temp = "?"
     max_temp = "?"
-    if outdoor_module[0]:
+    if outdoor_module[0] and outdoor_module[0]['dashboard_data']:
         min_temp = outdoor_module[0]['dashboard_data']['Temperature']
         if 'min_temp' in outdoor_module[0]['dashboard_data']: # might be empty right after midnight
             min_temp = outdoor_module[0]['dashboard_data']['min_temp']
