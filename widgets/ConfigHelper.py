@@ -34,4 +34,9 @@ class ConfigHelper(metaclass=Singleton):
     highlight_wind_max: int = config.getint('highlight', 'wind_max', fallback=50)
 
     def format_decimal(self, value) -> str:
-        return str(round(float(value), 1)).replace(".", self.decimal_marker)
+        result
+        try:
+            result = str(round(float(value), 1)).replace(".", self.decimal_marker)
+        except:
+            result = value
+        return result
